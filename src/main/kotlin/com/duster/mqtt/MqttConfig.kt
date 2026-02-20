@@ -19,7 +19,7 @@ class MqttConfig {
     @Value("\${mqtt.broker.url}")
     private lateinit var brokerUrl: String
 
-    @Value("\${mqtt.username:}")  // : — дефолтное пустое значение, если не указано
+    @Value("\${mqtt.username:}")
     private lateinit var username: String
 
     @Value("\${mqtt.password:}")

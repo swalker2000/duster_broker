@@ -40,7 +40,7 @@ class MessageConverter {
             it.deliveryGuarantee = dto.believerGuarantee
             it.data = dto.data
             // остальные поля остаются с значениями по умолчанию:
-            it.topic = topic
+            it.deviseId = topic
             // createdDate = текущая дата
             // sendDate = текущая дата
             // delivered = false

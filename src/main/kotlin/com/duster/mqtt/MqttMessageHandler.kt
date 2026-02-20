@@ -32,14 +32,7 @@ import java.util.Date
 @Service
 class MqttMessageHandler {
 
-    /**
-     * Источник от которого пришло сообщение.
-     */
-    enum class MessageSource(val prefixInTopic : String)
-    {
-        PRODUCER("producer"),
-        CONSUMER("consumer"),
-    }
+
 
     private val logger = LoggerFactory.getLogger(MqttMessageHandler::class.java)
 
@@ -52,6 +45,9 @@ class MqttMessageHandler {
 
     @Autowired
     private lateinit var mainRepository: MainRepository
+
+    @Autowired
+    private lateinit var consumerMessagePublisher: ConsumerMessagePublisher
 
     @Qualifier("outputChannel")
     private lateinit var outputChannel: MessageChannel
@@ -84,13 +80,7 @@ class MqttMessageHandler {
         var message = messageConverter.getMessage(producerMessageIn)
         message = mainRepository.saveMessage(message)//нам очень важен id присваиваемый БД
         val consumerMessageOutDto : ConsumerMessageOutDto = messageConverter.getConsumerMessageOutDto(message)
-        val outputTopic = "${MessageSource.CONSUMER.prefixInTopic}/request/${deviseId}"
-        val consumerMessageOut = MessageBuilder.withPayload(consumerMessageOutDto)
-            .copyHeaders(headers)
-            .setHeader("mqtt_topic", outputTopic)
-            .build()
-        logger.info("TD_CONSUMER [$deviseId] : $consumerMessageOut")
-        outputChannel.send(consumerMessageOut)
+        consumerMessagePublisher.publishMessageToConsumer(consumerMessageOutDto, deviseId)
     }
 
     private fun handlerConsumerMessage(payload : ConsumerMessageInDto, deviseId : String, headers : MessageHeaders)
@@ -99,9 +89,9 @@ class MqttMessageHandler {
         mainRepository.updateDeliveryStatus(payload.id, true, false, Date(System.currentTimeMillis()))
     }
 
-    private fun getMessageSourceFromTopic(topic: String): MqttMessageHandler.MessageSource? {
+    private fun getMessageSourceFromTopic(topic: String): MessageSource? {
         val prefix = topic.split('/').first()
-        return MqttMessageHandler.MessageSource.entries.firstOrNull{it.prefixInTopic == prefix}
+        return MessageSource.entries.firstOrNull{it.prefixInTopic == prefix}
     }
 
     private fun getDeviceIdFromTopic(topic: String): String {

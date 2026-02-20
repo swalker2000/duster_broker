@@ -22,10 +22,10 @@ class Message {
     var id : Int = 0
 
     /**
-     * Топик по которому должно быть отправлено сообщение
+     * Id устройства которому мы шлем сообщение.
      */
     @Column(nullable = false)
-    var topic : String? = ""
+    var deviseId : String = ""
 
     /**
      *  Время создания задачи.

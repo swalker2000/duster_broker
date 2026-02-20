@@ -9,9 +9,15 @@ import java.util.Date
 
 interface MessageRepository: JpaRepository<Message, Int> {
     /**
-     * Найти все сообщения по значению флага delivered, отсортированные по scheduledDispatchTime (по возрастанию).
+     * Найти все сообщения по значению флага delivered, и созданные раньше createDate.
+     *  - вывод отсортирован по дате создания (по возрастанию).
+     *  @param delivered было ли сообщение доставлено
+     *  @param searchBefore дата до которой выполняется поиск
      */
-    fun findAllByDeliveredOrderByScheduledDispatchTimeAsc(delivered: Boolean): List<Message>
+    fun findAllByDeliveredAndCreatedDateLessThanOrderByCreatedDateAsc(
+        delivered: Boolean,
+        searchBefore: Date
+    ): List<Message>
 
     /**
      * Обновить статус доставки для сообщения с заданным id.

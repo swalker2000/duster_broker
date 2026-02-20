@@ -4,4 +4,7 @@ mqtt:
   username: username  # Если не требуется, оставьте пустым
   password: password  # Если не требуется, оставьте пустым
   qos: 1  # Опционально, QoS по умолчанию
-  consumerTimeout: 5000
+common:
+  checkNotDeliveredTimeout: 120000
+  mqttWaitResponseTimeout: 60000
+  sendMessagePeriod: 1000

@@ -13,6 +13,20 @@ class MainRepository {
     @Autowired
     private lateinit var messageRepository: MessageRepository
 
+
+
+    /**
+     * Найти все не доставленные созданные раньше createDate.
+     *  - вывод отсортирован по дате создания (по возрастанию).
+     *  @param searchBefore дата до которой выполняется поиск
+     */
+    fun findNotDeliveredMessages(
+        searchBefore: Date
+    ): List<Message>
+    {
+        return messageRepository.findAllByDeliveredAndCreatedDateLessThanOrderByCreatedDateAsc(false, searchBefore)
+    }
+
     /**
      * Сохранить новое сообщение.
      */
