@@ -2,6 +2,7 @@ package com.duster.mqtt
 
 import com.duster.database.MainRepository
 import com.duster.database.data.Message
+import com.duster.mqtt.cash.MessageSendTimeCash
 
 import com.duster.mqtt.message.MessageConverter
 import kotlinx.coroutines.delay
@@ -51,6 +52,9 @@ class DeliveryControlService {
     @Autowired
     private lateinit var consumerMessagePublisher: ConsumerMessagePublisher
 
+    @Autowired
+    private lateinit var messageSendTimeCash: MessageSendTimeCash
+
 
     /**
      * Находит в базе все не доставленные сообщения и пытается их доставить.
@@ -95,6 +99,9 @@ class DeliveryControlService {
     private suspend fun publishMessagePacket(messageList: List<Message>) {
         for (message in messageList) {
             val consumerMessageOutDto = messageConverter.getConsumerMessageOutDto(message)
+            //:TODO убрать костыльную блокировку умножением времени на 2
+            //:TODO подумать нужна ли здесь блокировка
+            messageSendTimeCash.updateForDevise(message.deviseId, sendMessagePeriod*2)
             consumerMessagePublisher.publishMessageToConsumer(consumerMessageOutDto, message.deviseId)
             delay(sendMessagePeriod.milliseconds)
         }

@@ -1,6 +1,7 @@
 package com.duster.mqtt
 
 import com.duster.database.MainRepository
+import com.duster.mqtt.cash.MessageSendTimeCash
 import com.duster.mqtt.message.MessageConverter
 import com.duster.mqtt.message.dto.ConsumerMessageInDto
 import com.duster.mqtt.message.dto.ConsumerMessageOutDto
@@ -36,6 +37,12 @@ class MqttMessageHandler {
 
     private val logger = LoggerFactory.getLogger(MqttMessageHandler::class.java)
 
+    /**
+     * Периодичность с которой мы отсылаем сообщения на 1 устройство.
+     * (если слать слишком часто устройство может подвиснуть)
+     */
+    @Value("\${common.sendMessagePeriod}")
+    private  var sendMessagePeriod: Long = -1L
 
     @Value(("\${mqtt.consumerTimeout}"))
     private var consumerTimeout : Long = -1
@@ -48,6 +55,9 @@ class MqttMessageHandler {
 
     @Autowired
     private lateinit var consumerMessagePublisher: ConsumerMessagePublisher
+
+    @Autowired
+    private lateinit var messageSendTimeCash: MessageSendTimeCash
 
     @Qualifier("outputChannel")
     private lateinit var outputChannel: MessageChannel
@@ -78,9 +88,24 @@ class MqttMessageHandler {
     {
         logger.info("RD_PRODUCER [$deviseId] : $producerMessageIn")
         var message = messageConverter.getMessage(producerMessageIn)
+        val existsNotDeliveredMessages = mainRepository.existsByDeviseIdAndDeliveredFalse(deviseId)
         message = mainRepository.saveMessage(message)//нам очень важен id присваиваемый БД
-        val consumerMessageOutDto : ConsumerMessageOutDto = messageConverter.getConsumerMessageOutDto(message)
-        consumerMessagePublisher.publishMessageToConsumer(consumerMessageOutDto, deviseId)
+        //проверяем можно ли данному устройству отправить сейчас сообщение исходя из времени последней отправки?
+        //защита от ddos
+        synchronized(this) {
+            val messageSendTimeCashAvailable = messageSendTimeCash.isAvailable(deviseId)
+            if (messageSendTimeCashAvailable && existsNotDeliveredMessages) {
+                val consumerMessageOutDto: ConsumerMessageOutDto = messageConverter.getConsumerMessageOutDto(message)
+                messageSendTimeCash.updateForDevise(deviseId, sendMessagePeriod)
+                consumerMessagePublisher.publishMessageToConsumer(consumerMessageOutDto, deviseId)
+            } else {
+                logger.warn("Can`t send message to [$deviseId] immediately.")
+                if (!messageSendTimeCashAvailable)
+                    logger.warn("   - messageSendTimeCashAvailable is false")
+                if (!existsNotDeliveredMessages)
+                    logger.warn("   - existsNotDeliveredMessages is false")
+            }
+        }//synchronized
     }
 
     private fun handlerConsumerMessage(payload : ConsumerMessageInDto, deviseId : String, headers : MessageHeaders)

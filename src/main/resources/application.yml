@@ -8,3 +8,5 @@ common:
   checkNotDeliveredTimeout: 120000
   mqttWaitResponseTimeout: 60000
   sendMessagePeriod: 1000
+  messageSendTimeCash :
+    collectorRunPeriod : 3600000

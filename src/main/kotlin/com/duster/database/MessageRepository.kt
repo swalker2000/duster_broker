@@ -8,6 +8,15 @@ import org.springframework.data.repository.query.Param
 import java.util.Date
 
 interface MessageRepository: JpaRepository<Message, Int> {
+
+    /**
+     * Проверяет, существует ли хотя бы одно не доставленное сообщение для данного deviceId.
+     * @param deviseId идентификатор устройства
+     * @return true, если есть хотя бы одно сообщение с delivered = false для указанного deviseId
+     */
+    fun existsByDeviseIdAndDeliveredFalse(deviseId: String): Boolean
+
+
     /**
      * Найти все сообщения по значению флага delivered, и созданные раньше createDate.
      *  - вывод отсортирован по дате создания (по возрастанию).

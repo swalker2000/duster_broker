@@ -1,9 +1,10 @@
-package com.duster.mqtt
+package com.duster.mqtt.config
 
 import org.eclipse.paho.client.mqttv3.MqttConnectOptions
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.integration.annotation.ServiceActivator
 import org.springframework.integration.channel.DirectChannel
 import org.springframework.integration.mqtt.core.DefaultMqttPahoClientFactory
 import org.springframework.integration.mqtt.core.MqttPahoClientFactory
@@ -66,7 +67,11 @@ class MqttConfig {
      */
     @Bean
     fun mqttInboundAdapter(clientFactory: MqttPahoClientFactory, inputChannel: MessageChannel): MqttPahoMessageDrivenChannelAdapter {
-        val adapter = MqttPahoMessageDrivenChannelAdapter("inbound-client-${System.currentTimeMillis()}", clientFactory, "input/topic")
+        val adapter = MqttPahoMessageDrivenChannelAdapter(
+            "inbound-client-${System.currentTimeMillis()}",
+            clientFactory,
+            "input/topic"
+        )
         adapter.outputChannel = inputChannel
         adapter.setConverter(DefaultPahoMessageConverter())
         adapter.setQos(qos)
@@ -78,7 +83,7 @@ class MqttConfig {
      * Outbound-адаптер: отправка в выходной топик
      */
     @Bean
-    @org.springframework.integration.annotation.ServiceActivator(inputChannel = "outputChannel")
+    @ServiceActivator(inputChannel = "outputChannel")
     fun mqttOutboundHandler(clientFactory: MqttPahoClientFactory): MessageHandler {
         val handler = MqttPahoMessageHandler("outbound-client-${System.currentTimeMillis()}", clientFactory)
         handler.setAsync(true)

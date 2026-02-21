@@ -34,9 +34,9 @@ class Message {
     var createdDate : Date = Date(System.currentTimeMillis())
 
 
-
     /**
-     *  Время последней (не важно удачной или нет) оправки задачи.
+     *  Время оправки задачи.
+     *  (время когда мы получили ответ от устройства, что сообщение доставлено)
      */
     @Column
     var deliveredDate : Date? = null

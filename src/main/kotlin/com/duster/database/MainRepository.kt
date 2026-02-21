@@ -16,6 +16,16 @@ class MainRepository {
 
 
     /**
+     * Проверяет, существует ли хотя бы одно не доставленное сообщение для данного deviceId.
+     * @param deviseId идентификатор устройства
+     * @return true, если есть хотя бы одно сообщение с delivered = false для указанного deviseId
+     */
+    fun existsByDeviseIdAndDeliveredFalse(deviseId: String): Boolean
+    {
+        return messageRepository.existsByDeviseIdAndDeliveredFalse(deviseId)
+    }
+
+    /**
      * Найти все не доставленные созданные раньше createDate.
      *  - вывод отсортирован по дате создания (по возрастанию).
      *  @param searchBefore дата до которой выполняется поиск
