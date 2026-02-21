@@ -24,6 +24,7 @@ interface MessageRepository: JpaRepository<Message, Int> {
      * Устанавливает поля delivered, deliveredError и sendDate.
      * @return количество обновленных данных в базе.
      */
+    @Deprecated("Usee updateDeliveryError to update deliveredError")
     @Modifying
     @Query(
         "UPDATE Message m SET m.delivered = :delivered, m.deliveredError = :deliveredError, " +
@@ -31,7 +32,34 @@ interface MessageRepository: JpaRepository<Message, Int> {
     fun updateDeliveryStatus(
         @Param("id") id: Int,
         @Param("delivered") delivered: Boolean,
-        @Param("deliveredError") deliveredError: Boolean,
+        @Param("deliveredDate") deliveredDate: Date,
+        @Param("deliveredError") deliveredError: Boolean
+    ): Int
+
+    /**
+     * Обновить статус доставки для сообщения с заданным id.
+     * Устанавливает поля delivered и sendDate.
+     * @return количество обновленных данных в базе.
+     */
+    @Modifying
+    @Query(
+        "UPDATE Message m SET m.delivered = :delivered, " +
+                "m.deliveredDate = :deliveredDate WHERE m.id = :id")
+    fun updateDeliveryStatus(
+        @Param("id") id: Int,
+        @Param("delivered") delivered: Boolean,
         @Param("deliveredDate") deliveredDate: Date
+    ): Int
+
+    /**
+     * Обновить флаг ошибки доставки для сообщения с заданным id.
+     * @return количество обновленных данных в базе.
+     */
+    @Modifying
+    @Query(
+        "UPDATE Message m SET  m.deliveredError = :deliveredError WHERE m.id = :id")
+    fun updateDeliveryError(
+        @Param("id") id: Int,
+        @Param("deliveredError") deliveredError: Boolean
     ): Int
 }

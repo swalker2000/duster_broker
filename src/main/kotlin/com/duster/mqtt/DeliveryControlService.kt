@@ -52,23 +52,46 @@ class DeliveryControlService {
     private lateinit var consumerMessagePublisher: ConsumerMessagePublisher
 
 
-    // Запускается каждую минуту (фиксированная задержка между окончанием предыдущего и началом следующего выполнения)
-    @Scheduled(fixedRateString = "\${common.checkNotDeliveredTimeout}") // 60000 мс = 1 минута
-    fun checkAndSend() {
+    /**
+     * Находит в базе все не доставленные сообщения и пытается их доставить.
+     * (так же проставляет флаг ошибки отправки)
+     */
+    @Scheduled(fixedRateString = "\${common.checkNotDeliveredTimeout}")
+    private fun checkAndSend() {
         val searchBefore = Date(System.currentTimeMillis()-mqttWaitResponseTimeout)
+        //ищем все сообщения на которые не дождались ответа
         val messageList = mainRepository.findNotDeliveredMessages(searchBefore)
-        val groupedMessages = messageList
+        //группируем по id устройства
+        val groupedMessages :  List<List<Message>> = messageList
             .groupBy { message-> message.deviseId }
             .map{(deviseId, messages)-> messages.sortedBy { it.createdDate }}
         runBlocking {
-            for (group in groupedMessages) {
+            //проставляем флаг ошибка отправки на все найденные сообщения
+            launch {
+                messageList
+                    .filter { message -> message.deliveredError }
+                    .forEach { message -> mainRepository.updateDeliveryError(message.id, true)}
+            }
+            //производим доотправку
+            for (group : List<Message> in groupedMessages) {
+                //для каждого id все сообщения собраны в list group
                 launch {
+                    //Отправляем все сообщения на устройство с выбранным id
+                    // (в group все сообщения адресованы одному устройству).
+                    //Нельзя вывалить все сообщения разом на одно устройство оно умрет, по этому мы отсылаем их через
+                    //временной интервал (см. метод publishMessagePacket).
+                    //Что бы процесс шел быстрее отправка сообщений на разные устройства происходит паралельно.
                     publishMessagePacket(group)
                 }
             }
         }//runBlocking
     }
 
+    /**
+     * Отправить группу сообщений.
+     *  - предполагается, что все сообщения отправляются на одно устройство
+     *  - во избежания перегрузки устройства все сообщения отправляются через временной интервал.
+     */
     private suspend fun publishMessagePacket(messageList: List<Message>) {
         for (message in messageList) {
             val consumerMessageOutDto = messageConverter.getConsumerMessageOutDto(message)

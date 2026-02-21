@@ -34,16 +34,28 @@ class MainRepository {
         return messageRepository.save(message)
     }
 
+
     /**
      * Обновить статус доставки сообщения.
      */
     fun updateDeliveryStatus(
         id: Int,
         delivered: Boolean,
-        deliveredError: Boolean,
         deliveredDate: Date
     ): Int
     {
-        return messageRepository.updateDeliveryStatus(id, delivered, deliveredError, deliveredDate)
+        return messageRepository.updateDeliveryStatus(id, delivered,  deliveredDate)
+    }
+
+    /**
+     * Обновить флаг ошибки доставки для сообщения с заданным id.
+     * @return количество обновленных данных в базе.
+     */
+    fun updateDeliveryError(
+        id: Int,
+        deliveredError: Boolean
+    ): Int
+    {
+        return messageRepository.updateDeliveryError(id, deliveredError)
     }
 }

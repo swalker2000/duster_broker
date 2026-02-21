@@ -86,7 +86,7 @@ class MqttMessageHandler {
     private fun handlerConsumerMessage(payload : ConsumerMessageInDto, deviseId : String, headers : MessageHeaders)
     {
         logger.info("RD_CONSUMER [$deviseId] : $payload")
-        mainRepository.updateDeliveryStatus(payload.id, true, false, Date(System.currentTimeMillis()))
+        mainRepository.updateDeliveryStatus(payload.id, true,  Date(System.currentTimeMillis()))
     }
 
     private fun getMessageSourceFromTopic(topic: String): MessageSource? {
