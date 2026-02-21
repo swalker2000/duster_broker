@@ -90,22 +90,19 @@ class MqttMessageHandler {
         var message = messageConverter.getMessage(producerMessageIn)
         val existsNotDeliveredMessages = mainRepository.existsByDeviseIdAndDeliveredFalse(deviseId)
         message = mainRepository.saveMessage(message)//нам очень важен id присваиваемый БД
+        val consumerMessageOutDto: ConsumerMessageOutDto = messageConverter.getConsumerMessageOutDto(message)
         //проверяем можно ли данному устройству отправить сейчас сообщение исходя из времени последней отправки?
         //защита от ddos
-        synchronized(this) {
-            val messageSendTimeCashAvailable = messageSendTimeCash.isAvailable(deviseId)
-            if (messageSendTimeCashAvailable && existsNotDeliveredMessages) {
-                val consumerMessageOutDto: ConsumerMessageOutDto = messageConverter.getConsumerMessageOutDto(message)
-                messageSendTimeCash.updateForDevise(deviseId, sendMessagePeriod)
-                consumerMessagePublisher.publishMessageToConsumer(consumerMessageOutDto, deviseId)
-            } else {
-                logger.warn("Can`t send message to [$deviseId] immediately.")
-                if (!messageSendTimeCashAvailable)
-                    logger.warn("   - messageSendTimeCashAvailable is false")
-                if (!existsNotDeliveredMessages)
-                    logger.warn("   - existsNotDeliveredMessages is false")
-            }
-        }//synchronized
+        val messageSendTimeCashAvailable = messageSendTimeCash.updateForDeviseIfAvailable(deviseId, sendMessagePeriod)
+        if (messageSendTimeCashAvailable && existsNotDeliveredMessages) {
+            consumerMessagePublisher.publishMessageToConsumer(consumerMessageOutDto, deviseId)
+        } else {
+            logger.warn("Can`t send message to [$deviseId] immediately.")
+            if (!messageSendTimeCashAvailable)
+                logger.warn("   - messageSendTimeCashAvailable is false")
+            if (!existsNotDeliveredMessages)
+                logger.warn("   - existsNotDeliveredMessages is false")
+        }
     }
 
     private fun handlerConsumerMessage(payload : ConsumerMessageInDto, deviseId : String, headers : MessageHeaders)
