@@ -1,6 +1,7 @@
 package com.duster.mqtt
 
 import com.duster.database.MainRepository
+import com.duster.database.data.DeliveryGuarantee
 import com.duster.mqtt.cash.MessageSendTimeCash
 import com.duster.mqtt.message.MessageConverter
 import com.duster.mqtt.message.dto.ConsumerMessageInDto
@@ -91,11 +92,14 @@ class MqttMessageHandler {
         val existsNotDeliveredMessages = mainRepository.existsByDeviseIdAndDeliveredFalse(deviseId)
         message = mainRepository.saveMessage(message)//нам очень важен id присваиваемый БД
         val consumerMessageOutDto: ConsumerMessageOutDto = messageConverter.getConsumerMessageOutDto(message)
-        //проверяем можно ли данному устройству отправить сейчас сообщение исходя из времени последней отправки?
-        //защита от ddos
+        //Проверяем можно ли данному устройству отправить сейчас сообщение исходя из времени последней отправки?
+        //Защита от ddos.
         val messageSendTimeCashAvailable = messageSendTimeCash.updateForDeviseIfAvailable(deviseId, sendMessagePeriod)
         if (messageSendTimeCashAvailable && existsNotDeliveredMessages) {
             consumerMessagePublisher.publishMessageToConsumer(consumerMessageOutDto, deviseId)
+            //если гарантия доставки отсутсвует проставляем метку, что сообщение доставлено
+            if(message.deliveryGuarantee == DeliveryGuarantee.NO)
+                mainRepository.updateDeliveryStatus(message.id, true,  Date(System.currentTimeMillis()))
         } else {
             logger.warn("Can`t send message to [$deviseId] immediately.")
             if (!messageSendTimeCashAvailable)
