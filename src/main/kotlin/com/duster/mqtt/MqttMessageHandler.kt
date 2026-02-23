@@ -64,16 +64,7 @@ class MqttMessageHandler() {
 
     @Qualifier("outputChannel")
     private lateinit var outputChannel: MessageChannel
-    
 
-    //@PostConstruct
-    fun run()
-    {
-        Thread{
-            Thread.sleep(10_000)
-        consumerMessagePublisher.publishMessageToConsumer(ConsumerMessageOutDto(), "deviseId")
-        }.start()
-    }
 
     @ServiceActivator(inputChannel = "inputChannel")
     fun handleMessage(message: Message<String>) {
@@ -87,18 +78,10 @@ class MqttMessageHandler() {
 
         when (messageSource) {
             MessageSource.PRODUCER -> {
-                val messageIn : ProducerMessageInDto = objectMapper.readValue(
-                    message.payload,
-                    ProducerMessageInDto::class.java
-                )
-                handlerProducerMessage(messageIn, deviseId, headers)
+                handlerProducerMessage(message, deviseId, headers)
             }
             MessageSource.CONSUMER -> {
-                val messageIn = objectMapper.readValue(
-                    message.payload,
-                    ConsumerMessageInDto::class.java
-                )
-                handlerConsumerMessage(messageIn, deviseId, headers)
+                handlerConsumerMessage(message, deviseId, headers)
             }
             else -> {
                 logger.error("Unknown message source [$topic]")
@@ -107,10 +90,14 @@ class MqttMessageHandler() {
     }
 
 
-    private fun handlerProducerMessage(producerMessageIn : ProducerMessageInDto, deviseId : String, headers : MessageHeaders)
+    private fun handlerProducerMessage(message: Message<String>, deviseId : String, headers : MessageHeaders)
     {
         try {
-            logger.info("RD_PRODUCER [$deviseId] : $producerMessageIn")
+            val producerMessageIn : ProducerMessageInDto = objectMapper.readValue(
+                message.payload,
+                ProducerMessageInDto::class.java
+            )
+            logger.info("RD_PRODUCER [$deviseId] : ${message.payload}")
             var message = messageConverter.getMessage(producerMessageIn, deviseId)
             val existsNotDeliveredMessages = mainRepository.existsByDeviseIdAndDeliveredFalse(deviseId)
             message = mainRepository.saveMessage(message)//нам очень важен id присваиваемый БД
@@ -137,9 +124,13 @@ class MqttMessageHandler() {
         }
     }
 
-    private fun handlerConsumerMessage(consumerMessageInDto : ConsumerMessageInDto, deviseId : String, headers : MessageHeaders)
+    private fun handlerConsumerMessage(message: Message<String>, deviseId : String, headers : MessageHeaders)
     {
-        logger.info("RD_CONSUMER [$deviseId] : $consumerMessageInDto")
+        val consumerMessageInDto = objectMapper.readValue(
+            message.payload,
+            ConsumerMessageInDto::class.java
+        )
+        logger.info("RD_CONSUMER [$deviseId] : $message.payload")
         mainRepository.updateDeliveryStatus(consumerMessageInDto.id, true,  Date(System.currentTimeMillis()))
     }
 
