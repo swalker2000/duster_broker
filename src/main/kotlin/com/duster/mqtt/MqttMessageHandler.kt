@@ -6,20 +6,15 @@ import com.duster.mqtt.cash.MessageSendTimeCash
 import com.duster.mqtt.message.MessageConverter
 import com.duster.mqtt.message.dto.ConsumerMessageInDto
 import com.duster.mqtt.message.dto.ConsumerMessageOutDto
-import com.duster.mqtt.message.dto.MessageInDto
 import com.duster.mqtt.message.dto.ProducerMessageInDto
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.beans.factory.annotation.Value
-import org.springframework.boot.context.event.ApplicationReadyEvent
-import org.springframework.context.ApplicationContext
-import org.springframework.context.event.EventListener
 import org.springframework.integration.annotation.ServiceActivator
 import org.springframework.messaging.Message
 import org.springframework.messaging.MessageChannel
 import org.springframework.messaging.MessageHeaders
-import org.springframework.messaging.support.MessageBuilder
 import org.springframework.stereotype.Service
 import tools.jackson.databind.ObjectMapper
 import java.util.Date
@@ -142,10 +137,10 @@ class MqttMessageHandler() {
         }
     }
 
-    private fun handlerConsumerMessage(payload : ConsumerMessageInDto, deviseId : String, headers : MessageHeaders)
+    private fun handlerConsumerMessage(consumerMessageInDto : ConsumerMessageInDto, deviseId : String, headers : MessageHeaders)
     {
-        logger.info("RD_CONSUMER [$deviseId] : $payload")
-        mainRepository.updateDeliveryStatus(payload.id, true,  Date(System.currentTimeMillis()))
+        logger.info("RD_CONSUMER [$deviseId] : $consumerMessageInDto")
+        mainRepository.updateDeliveryStatus(consumerMessageInDto.id, true,  Date(System.currentTimeMillis()))
     }
 
     private fun getMessageSourceFromTopic(topic: String): MessageSource? {

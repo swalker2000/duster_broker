@@ -1,5 +1,11 @@
 package com.duster.mqtt.message.dto
 
+
+/*
+  {"id" : 1,  "command" : "abce", "data" : null }
+ */
+
+
 /**
  * Защищенный ответ от клиента к брокеру.
  * @param id сообщения ProtectedMessageOutDto на которое мы отвечаем

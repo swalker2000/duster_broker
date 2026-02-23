@@ -2,6 +2,7 @@ package com.duster.mqtt.message.dto
 
 import com.duster.database.data.DeliveryGuarantee
 
+
 /**
  * Сообщение отправляемое от брокера клиенту.
  * @param id присваивается брокером (в нашей конкретной реализации базой Postgres)
