@@ -36,7 +36,7 @@ import java.util.Date
  *  - После получения ответа меняем флаг delivered на true
  */
 @Service
-class MqttMessageHandler(private val objectMapper: ObjectMapper) {
+class MqttMessageHandler() {
 
 
 
@@ -64,6 +64,9 @@ class MqttMessageHandler(private val objectMapper: ObjectMapper) {
     @Autowired
     private lateinit var messageSendTimeCash: MessageSendTimeCash
 
+    @Autowired
+    private lateinit var objectMapper: ObjectMapper
+
     @Qualifier("outputChannel")
     private lateinit var outputChannel: MessageChannel
     
@@ -76,8 +79,6 @@ class MqttMessageHandler(private val objectMapper: ObjectMapper) {
         consumerMessagePublisher.publishMessageToConsumer(ConsumerMessageOutDto(), "deviseId")
         }.start()
     }
-
-    data class Jopa(var a : String= "")
 
     @ServiceActivator(inputChannel = "inputChannel")
     fun handleMessage(message: Message<String>) {
@@ -115,7 +116,7 @@ class MqttMessageHandler(private val objectMapper: ObjectMapper) {
     {
         try {
             logger.info("RD_PRODUCER [$deviseId] : $producerMessageIn")
-            var message = messageConverter.getMessage(producerMessageIn)
+            var message = messageConverter.getMessage(producerMessageIn, deviseId)
             val existsNotDeliveredMessages = mainRepository.existsByDeviseIdAndDeliveredFalse(deviseId)
             message = mainRepository.saveMessage(message)//нам очень важен id присваиваемый БД
             val consumerMessageOutDto: ConsumerMessageOutDto = messageConverter.getConsumerMessageOutDto(message)

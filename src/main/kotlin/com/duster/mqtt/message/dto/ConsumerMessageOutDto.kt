@@ -3,7 +3,7 @@ package com.duster.mqtt.message.dto
 import com.duster.database.data.DeliveryGuarantee
 
 /**
- * Защищенное Сообщение отправляемое от брокера клиенту.
+ * Сообщение отправляемое от брокера клиенту.
  * @param id присваивается брокером (в нашей конкретной реализации базой Postgres)
  */
 class ConsumerMessageOutDto(
@@ -14,12 +14,6 @@ class ConsumerMessageOutDto(
      * Текущий таймстамп, чтобы устройства могли синхронизировать по нему время.
      */
     var currentTimestamp: Long = 0
-
-    /**
-     *  Запланированное время отправки сообщения.
-     *   - если сообщения приходят не по порядку, чтобы их можно было отсортировать.
-     */
-    var scheduledDispatchTimestamp : Long = 0
 
 
     /**

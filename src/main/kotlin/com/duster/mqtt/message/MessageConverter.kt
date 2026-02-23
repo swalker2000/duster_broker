@@ -15,6 +15,7 @@ class MessageConverter {
      */
     fun getMessage(
         producerMessageInDto: ProducerMessageInDto,
+        deviseId: String,
         delivered : Boolean = false,
         deliveredError : Boolean = false,
         createdDate : Date = Date(System.currentTimeMillis()),
@@ -30,6 +31,7 @@ class MessageConverter {
         message.deliveredError = deliveredError
         message.createdDate = createdDate
         message.deliveredDate = deliveredDate
+        message.deviseId = deviseId
         return message
     }
 
