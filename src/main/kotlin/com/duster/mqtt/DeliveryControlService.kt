@@ -60,8 +60,9 @@ class DeliveryControlService {
      * Находит в базе все не доставленные сообщения и пытается их доставить.
      * (так же проставляет флаг ошибки отправки)
      */
-    @Scheduled(fixedRateString = "\${common.checkNotDeliveredTimeout}")
-    private fun checkAndSend() {
+    @Scheduled(fixedDelayString = "\${common.checkNotDeliveredTimeout}")
+    fun checkAndSend() {
+        logger.info("Run checkAndSend method:")
         val searchBefore = Date(System.currentTimeMillis()-mqttWaitResponseTimeout)
         //ищем все сообщения, на которые не дождались ответа
         val messageList = mainRepository.findNotDeliveredMessages(searchBefore)
@@ -69,6 +70,7 @@ class DeliveryControlService {
         val groupedMessages :  List<List<Message>> = messageList
             .groupBy { message-> message.deviseId }
             .map{(deviseId, messages)-> messages.sortedBy { it.createdDate }}
+        logger.info("    - found ${messageList.size} not delivered messages for ${groupedMessages.size} devises")
         runBlocking {
             //проставляем флаг ошибка отправки на все найденные сообщения
             launch {
@@ -89,6 +91,7 @@ class DeliveryControlService {
                 }
             }
         }//runBlocking
+        logger.info("CheckAndSend method stop.")
     }
 
     /**
