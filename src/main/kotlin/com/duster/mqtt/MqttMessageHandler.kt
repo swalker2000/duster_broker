@@ -12,12 +12,16 @@ import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.boot.context.event.ApplicationReadyEvent
+import org.springframework.context.ApplicationContext
+import org.springframework.context.event.EventListener
 import org.springframework.integration.annotation.ServiceActivator
 import org.springframework.messaging.Message
 import org.springframework.messaging.MessageChannel
 import org.springframework.messaging.MessageHeaders
 import org.springframework.messaging.support.MessageBuilder
 import org.springframework.stereotype.Service
+import tools.jackson.databind.ObjectMapper
 import java.util.Date
 
 /**
@@ -32,20 +36,20 @@ import java.util.Date
  *  - После получения ответа меняем флаг delivered на true
  */
 @Service
-class MqttMessageHandler {
+class MqttMessageHandler(private val objectMapper: ObjectMapper) {
 
 
 
     private val logger = LoggerFactory.getLogger(MqttMessageHandler::class.java)
 
     /**
-     * Периодичность с которой мы отсылаем сообщения на 1 устройство.
+     * Периодичность, с которой мы отсылаем сообщения на 1 устройство.
      * (если слать слишком часто устройство может подвиснуть)
      */
     @Value("\${common.sendMessagePeriod}")
     private  var sendMessagePeriod: Long = -1L
 
-    @Value(("\${mqtt.consumerTimeout}"))
+    @Value(("\${common.consumerTimeout}"))
     private var consumerTimeout : Long = -1
 
     @Autowired
@@ -62,50 +66,78 @@ class MqttMessageHandler {
 
     @Qualifier("outputChannel")
     private lateinit var outputChannel: MessageChannel
+    
+
+    //@PostConstruct
+    fun run()
+    {
+        Thread{
+            Thread.sleep(10_000)
+        consumerMessagePublisher.publishMessageToConsumer(ConsumerMessageOutDto(), "deviseId")
+        }.start()
+    }
+
+    data class Jopa(var a : String= "")
 
     @ServiceActivator(inputChannel = "inputChannel")
-    fun handleMessage(message: Message<MessageInDto>) {
+    fun handleMessage(message: Message<String>) {
+        logger.info("New message received:")
 
         val topic = message.headers["mqtt_receivedTopic"] as String // Входной топик
         val deviseId = getDeviceIdFromTopic(topic)
         val messageSource : MessageSource? = getMessageSourceFromTopic(topic)
         val headers : MessageHeaders = message.headers
         //logger.trace("RD [$topic] : $messageIn")
+
         when (messageSource) {
             MessageSource.PRODUCER -> {
-                val messageIn : ProducerMessageInDto = message.payload as ProducerMessageInDto
+                val messageIn : ProducerMessageInDto = objectMapper.readValue(
+                    message.payload,
+                    ProducerMessageInDto::class.java
+                )
                 handlerProducerMessage(messageIn, deviseId, headers)
             }
             MessageSource.CONSUMER -> {
-                val messageIn : ConsumerMessageInDto = message.payload as ConsumerMessageInDto
+                val messageIn = objectMapper.readValue(
+                    message.payload,
+                    ConsumerMessageInDto::class.java
+                )
                 handlerConsumerMessage(messageIn, deviseId, headers)
             }
-            else -> {}
+            else -> {
+                logger.error("Unknown message source [$topic]")
+            }
         }
     }
 
 
     private fun handlerProducerMessage(producerMessageIn : ProducerMessageInDto, deviseId : String, headers : MessageHeaders)
     {
-        logger.info("RD_PRODUCER [$deviseId] : $producerMessageIn")
-        var message = messageConverter.getMessage(producerMessageIn)
-        val existsNotDeliveredMessages = mainRepository.existsByDeviseIdAndDeliveredFalse(deviseId)
-        message = mainRepository.saveMessage(message)//нам очень важен id присваиваемый БД
-        val consumerMessageOutDto: ConsumerMessageOutDto = messageConverter.getConsumerMessageOutDto(message)
-        //Проверяем можно ли данному устройству отправить сейчас сообщение исходя из времени последней отправки?
-        //Защита от ddos.
-        val messageSendTimeCashAvailable = messageSendTimeCash.updateForDeviseIfAvailable(deviseId, sendMessagePeriod)
-        if (messageSendTimeCashAvailable && existsNotDeliveredMessages) {
-            consumerMessagePublisher.publishMessageToConsumer(consumerMessageOutDto, deviseId)
-            //если гарантия доставки отсутсвует проставляем метку, что сообщение доставлено
-            if(message.deliveryGuarantee == DeliveryGuarantee.NO)
-                mainRepository.updateDeliveryStatus(message.id, true,  Date(System.currentTimeMillis()))
-        } else {
-            logger.warn("Can`t send message to [$deviseId] immediately.")
-            if (!messageSendTimeCashAvailable)
-                logger.warn("   - messageSendTimeCashAvailable is false")
-            if (!existsNotDeliveredMessages)
-                logger.warn("   - existsNotDeliveredMessages is false")
+        try {
+            logger.info("RD_PRODUCER [$deviseId] : $producerMessageIn")
+            var message = messageConverter.getMessage(producerMessageIn)
+            val existsNotDeliveredMessages = mainRepository.existsByDeviseIdAndDeliveredFalse(deviseId)
+            message = mainRepository.saveMessage(message)//нам очень важен id присваиваемый БД
+            val consumerMessageOutDto: ConsumerMessageOutDto = messageConverter.getConsumerMessageOutDto(message)
+            //Проверяем можно ли данному устройству отправить сейчас сообщение исходя из времени последней отправки?
+            //Защита от ddos.
+            val messageSendTimeCashAvailable =
+                messageSendTimeCash.updateForDeviseIfAvailable(deviseId, sendMessagePeriod)
+            if (messageSendTimeCashAvailable && !existsNotDeliveredMessages) {
+                consumerMessagePublisher.publishMessageToConsumer(consumerMessageOutDto, deviseId)
+                //если гарантия доставки отсутсвует, проставляем метку, что сообщение доставлено
+                if (message.deliveryGuarantee == DeliveryGuarantee.NO)
+                    mainRepository.updateDeliveryStatus(message.id, true, Date(System.currentTimeMillis()))
+            } else {
+                logger.warn("Can`t send message to [$deviseId] immediately.")
+                if (!messageSendTimeCashAvailable)
+                    logger.warn("   - messageSendTimeCashAvailable is false")
+                if (existsNotDeliveredMessages)
+                    logger.warn("   - existsNotDeliveredMessages is true")
+            }
+        }
+        catch (e : Exception) {
+            logger.error(e.stackTraceToString())
         }
     }
 

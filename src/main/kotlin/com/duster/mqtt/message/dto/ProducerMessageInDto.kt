@@ -7,13 +7,27 @@ import jakarta.persistence.Enumerated
 import org.hibernate.annotations.JdbcTypeCode
 import org.hibernate.type.SqlTypes
 
+/*
+
+  {
+    "believerGuarantee": "RECEIPT_CONFIRMATION",
+    "command": "some_command",
+    "data": {
+      "key1": "value1",
+      "key2": 123
+    }
+  }
+ */
+
+
+
 class ProducerMessageInDto : MessageInDto {
 
     /**
      * Ожидаем, что устройство в ответ пришлет какие-то данные.
      */
     @Enumerated(EnumType.ORDINAL)
-    var believerGuarantee : DeliveryGuarantee = DeliveryGuarantee.NO
+    var believerGuarantee : DeliveryGuarantee = DeliveryGuarantee.RECEIPT_CONFIRMATION
 
     /**
      * Команда передаваемая в сообщении.

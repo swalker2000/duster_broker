@@ -63,7 +63,7 @@ class DeliveryControlService {
     @Scheduled(fixedRateString = "\${common.checkNotDeliveredTimeout}")
     private fun checkAndSend() {
         val searchBefore = Date(System.currentTimeMillis()-mqttWaitResponseTimeout)
-        //ищем все сообщения на которые не дождались ответа
+        //ищем все сообщения, на которые не дождались ответа
         val messageList = mainRepository.findNotDeliveredMessages(searchBefore)
         //группируем по id устройства
         val groupedMessages :  List<List<Message>> = messageList
@@ -82,9 +82,9 @@ class DeliveryControlService {
                 launch {
                     //Отправляем все сообщения на устройство с выбранным id
                     // (в group все сообщения адресованы одному устройству).
-                    //Нельзя вывалить все сообщения разом на одно устройство оно умрет, по этому мы отсылаем их через
+                    //Нельзя вывалить все сообщения разом на одно устройство оно умрет, поэтому мы отсылаем их через
                     //временной интервал (см. метод publishMessagePacket).
-                    //Что бы процесс шел быстрее отправка сообщений на разные устройства происходит паралельно.
+                    //Чтобы процесс шел быстрее, отправка сообщений на разные устройства происходит паралельно.
                     publishMessagePacket(group)
                 }
             }
@@ -94,7 +94,7 @@ class DeliveryControlService {
     /**
      * Отправить группу сообщений.
      *  - предполагается, что все сообщения отправляются на одно устройство
-     *  - во избежания перегрузки устройства все сообщения отправляются через временной интервал.
+     *  - в избежания перегрузки устройства все сообщения отправляются через временной интервал.
      */
     private suspend fun publishMessagePacket(messageList: List<Message>) {
         for (message in messageList) {

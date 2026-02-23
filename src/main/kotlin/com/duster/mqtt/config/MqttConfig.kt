@@ -13,6 +13,7 @@ import org.springframework.integration.mqtt.outbound.MqttPahoMessageHandler
 import org.springframework.integration.mqtt.support.DefaultPahoMessageConverter
 import org.springframework.messaging.MessageChannel
 import org.springframework.messaging.MessageHandler
+import org.springframework.messaging.converter.JacksonJsonMessageConverter
 
 @Configuration
 class MqttConfig {
@@ -69,10 +70,11 @@ class MqttConfig {
     fun mqttInboundAdapter(clientFactory: MqttPahoClientFactory, inputChannel: MessageChannel): MqttPahoMessageDrivenChannelAdapter {
         val adapter = MqttPahoMessageDrivenChannelAdapter(
             "inbound-client-${System.currentTimeMillis()}",
-            clientFactory,
-            "input/topic"
+            clientFactory
         )
-        adapter.outputChannel = inputChannel
+        adapter.addTopic("producer/request/#")
+        adapter.addTopic("consumer/response/#")
+        adapter.setOutputChannel(inputChannel)
         adapter.setConverter(DefaultPahoMessageConverter())
         adapter.setQos(qos)
         return adapter

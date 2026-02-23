@@ -8,12 +8,12 @@ import org.springframework.messaging.support.MessageBuilder
 import org.springframework.stereotype.Component
 
 @Component
-class ConsumerMessagePublisher {
+class ConsumerMessagePublisher(
+    @Qualifier("outputChannel") private  val outputChannel: MessageChannel
+) {
 
     private val logger = LoggerFactory.getLogger(ConsumerMessagePublisher::class.java)
 
-    @Qualifier("outputChannel")
-    private lateinit var outputChannel: MessageChannel
 
     /**
      * Отправить сообщение подписчику.

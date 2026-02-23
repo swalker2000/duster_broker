@@ -1,12 +1,21 @@
 mqtt:
   broker:
     url: tcp://localhost:1883
-  username: username  # Если не требуется, оставьте пустым
-  password: password  # Если не требуется, оставьте пустым
+  #username: username  # Если не требуется, оставьте пустым
+  #password: password  # Если не требуется, оставьте пустым
   qos: 1  # Опционально, QoS по умолчанию
 common:
   checkNotDeliveredTimeout: 120000
   mqttWaitResponseTimeout: 60000
   sendMessagePeriod: 1000
+  consumerTimeout: 1000
   messageSendTimeCash :
     collectorRunPeriod : 3600000
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/duster
+    username: postgres
+    password: postgres
+  jpa:
+    hibernate:
+      ddl-auto: create
