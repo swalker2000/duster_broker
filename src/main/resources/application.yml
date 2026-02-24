@@ -1,8 +1,10 @@
 mqtt:
   broker:
-    url: tcp://localhost:1883
-  #username: username  # Если не требуется, оставьте пустым
-  #password: password  # Если не требуется, оставьте пустым
+    url: ssl://localhost:8883
+    username: ADMIN  # Если не требуется, оставьте пустым
+    password: 1234  # Если не требуется, оставьте пустым
+  ssl:
+    insecure: true
   qos: 1  # Опционально, QoS по умолчанию
 common:
   checkNotDeliveredTimeout: 120000

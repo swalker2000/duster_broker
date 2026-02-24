@@ -14,6 +14,9 @@ import org.springframework.integration.mqtt.support.DefaultPahoMessageConverter
 import org.springframework.messaging.MessageChannel
 import org.springframework.messaging.MessageHandler
 import org.springframework.messaging.converter.JacksonJsonMessageConverter
+import java.security.SecureRandom
+import javax.net.ssl.SSLContext
+import kotlin.math.log
 
 @Configuration
 class MqttConfig {
@@ -21,14 +24,17 @@ class MqttConfig {
     @Value("\${mqtt.broker.url}")
     private lateinit var brokerUrl: String
 
-    @Value("\${mqtt.username:}")
+    @Value("\${mqtt.broker.username:}")
     private lateinit var username: String
 
-    @Value("\${mqtt.password:}")
+    @Value("\${mqtt.broker.password:}")
     private lateinit var password: String
 
     @Value("\${mqtt.qos:1}")
     private var qos: Int = 1
+
+    @Value("\${mqtt.ssl.insecure:false}")   // ← берём из yaml, по умолчанию false
+    private var insecureSsl: Boolean = false
 
     @Bean
     fun mqttClientFactory(): MqttPahoClientFactory {
@@ -42,6 +48,25 @@ class MqttConfig {
             options.password = password.toCharArray()
         }
         options.isCleanSession = true
+        // ─────────────────────────────── TLS + отключение проверки ───────────────────────────────
+        if (brokerUrl.startsWith("ssl://")) {
+            try {
+                if (insecureSsl) {
+
+                    // Полностью отключаем проверку сертификата (Validate certificate: false)
+                    val sslContext = SSLContext.getInstance("TLS")
+                    sslContext.init(null, arrayOf(TrustAllTrustManager), SecureRandom())
+                    options.socketFactory = sslContext.socketFactory
+
+                    // Отключаем проверку hostname (часто тоже нужно)
+                    options.isHttpsHostnameVerificationEnabled = false
+                }
+                // Если insecure = false → здесь можно добавить нормальный TrustManager с CA, но пока не трогаем
+            } catch (e: Exception) {
+                throw RuntimeException("SSL settings error", e)
+            }
+        }
+        // ────────────────────────────────────────────────────────────────────────────────────────
         factory.connectionOptions = options
         return factory
     }

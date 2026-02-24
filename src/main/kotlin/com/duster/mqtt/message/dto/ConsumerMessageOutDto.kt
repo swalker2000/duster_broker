@@ -27,7 +27,7 @@ class ConsumerMessageOutDto(
     /**
      * Ожидаем, что устройство в ответ пришлет какие-то данные.
      */
-    var believerGuarantee : DeliveryGuarantee = DeliveryGuarantee.NO
+    var believerGuarantee : DeliveryGuarantee = DeliveryGuarantee.RECEIPT_CONFIRMATION
 
 
     /**

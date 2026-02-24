@@ -1,10 +1,9 @@
 package com.duster.mqtt.message.dto
 
-
 /*
-  {"id" : 1,  "command" : "abce", "data" : null }
+    Example :
+  {"id" : 1}
  */
-
 
 /**
  * Защищенный ответ от клиента к брокеру.
@@ -12,17 +11,4 @@ package com.duster.mqtt.message.dto
  */
 class ConsumerMessageInDto (
     var id: Int = 0,
-    ) : MessageInDto {
-
-    /**
-     * Команда передаваемая в сообщении.
-     *  - для всех одинаковых значений command рекомендуется делать одинаковую структуру поля data.
-     */
-    var command : String = ""
-
-
-    /**
-     * Дополнительные данные в формате JSON.
-     */
-    var data: Map<String, Any>? = null
-}
+    ) : MessageInDto
