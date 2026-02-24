@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
 import java.util.Date
+import java.util.concurrent.ConcurrentHashMap
 
 /**
  * Кэш хранящий время последнего отправленного сообщения для каждого устройства.
@@ -22,7 +23,8 @@ class MessageSendTimeCash {
     @Value("\${common.messageSendTimeCash.collectorRunPeriod}")
     private  val collectorRemovePeriod : Long = -1
 
-    private var deviseIdToDate = mutableMapOf<String, Date>()
+
+    private val deviseIdToDate = ConcurrentHashMap<String, Date>()
 
     /**
      * Сохранить в кэш, что на это устройство сейчас отправляется сообщение.
