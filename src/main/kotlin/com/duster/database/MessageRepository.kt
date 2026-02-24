@@ -7,8 +7,12 @@ import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.query.Param
 import org.springframework.transaction.annotation.Transactional
 import java.util.Date
+import java.util.Optional
 
 interface MessageRepository: JpaRepository<Message, Int> {
+
+
+
 
     /**
      * Проверяет, существует ли хотя бы одно не доставленное сообщение для данного deviceId.
@@ -17,6 +21,14 @@ interface MessageRepository: JpaRepository<Message, Int> {
      */
     fun existsByDeviseIdAndDeliveredFalse(deviseId: String): Boolean
 
+
+    /**
+     * Получить статус доставки сообщения по его id.
+     * @param id идентификатор сообщения
+     * @return true если сообщение доставлено, false если нет, или null если сообщение с таким id не найдено
+     */
+    @Query("SELECT m.delivered FROM Message m WHERE m.id = :id")
+    fun findDeliveredById(@Param("id") id: Int): Optional<Boolean>
 
     /**
      * Найти все сообщения по значению флага delivered, и созданные раньше createDate.

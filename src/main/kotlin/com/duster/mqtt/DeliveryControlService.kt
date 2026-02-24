@@ -107,6 +107,18 @@ class DeliveryControlService {
             messageSendTimeCash.updateForDevise(message.deviseId, sendMessagePeriod*2)
             consumerMessagePublisher.publishMessageToConsumer(consumerMessageOutDto, message.deviseId)
             delay(sendMessagePeriod.milliseconds)
+            val isDeliveredOptional  = mainRepository.findDeliveredById(message.id)
+            //если такого сообщения в базе нет, то это какая, то злая ошибка, пишем в лог
+            if(!isDeliveredOptional.isPresent) {
+                logger.error("    - message ${message.id} is for devise '${message.deviseId}' is not found")
+            }
+            //проверяем доставили ли сообщение
+            else if(!mainRepository.findDeliveredById(message.id).get())
+            {
+                //если не доставили прерываем доставку сообщений для данного устройства
+                logger.warn("    - message '${message.id}' is for devise '${message.deviseId}' not delivered. Break deliver for this devise.")
+                return
+            }
         }
     }
 

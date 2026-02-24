@@ -2,9 +2,11 @@ package com.duster.database
 
 import com.duster.database.data.Message
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.query.Param
 import org.springframework.stereotype.Repository
 import java.util.Date
+import java.util.Optional
 import java.util.function.Consumer
 
 @Repository
@@ -14,6 +16,15 @@ class MainRepository {
     private lateinit var messageRepository: MessageRepository
 
 
+    /**
+     * Получить статус доставки сообщения по его id.
+     * @param id идентификатор сообщения
+     * @return true если сообщение доставлено, false если нет, или null если сообщение с таким id не найдено
+     */
+    @Query("SELECT m.delivered FROM Message m WHERE m.id = :id")
+    fun findDeliveredById(@Param("id") id: Int): Optional<Boolean> {
+        return messageRepository.findDeliveredById(id)
+    }
 
     /**
      * Проверяет, существует ли хотя бы одно не доставленное сообщение для данного deviceId.

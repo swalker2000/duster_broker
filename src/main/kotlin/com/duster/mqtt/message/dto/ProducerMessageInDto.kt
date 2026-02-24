@@ -8,7 +8,7 @@ import org.hibernate.annotations.JdbcTypeCode
 import org.hibernate.type.SqlTypes
 
 /*
-
+    producer/request/{deviceId}
   {
     "believerGuarantee": "RECEIPT_CONFIRMATION",
     "command": "some_command",
