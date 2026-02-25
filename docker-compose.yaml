@@ -1,0 +1,82 @@
+services:
+  duster:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: duster
+    depends_on:
+      - postgres
+      - mqtt
+    environment:
+      # --- Postgres ---
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/duster
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
+
+      # --- JPA  ---
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      SPRING_JPA_DATABASE_PLATFORM: org.hibernate.dialect.PostgreSQLDialect
+
+      # --- MQTT ---
+      # Если брокер у тебя в контейнере слушает TLS на 8883 — оставь так.
+      MQTT_BROKER_URL: ssl://mqtt:${MQTT_PORT}
+      MQTT_BROKER_USERNAME: ${MQTT_BROKER_USERNAME}
+      MQTT_BROKER_PASSWORD: ${MQTT_BROKER_PASSWORD}
+      MQTT_SSL_INSECURE: "true"
+      MQTT_QOS: "1"
+
+      # --- Common ---
+      COMMON_CHECK_NOT_DELIVERED_TIMEOUT: "60000"
+      COMMON_MQTT_WAIT_RESPONSE_TIMEOUT: "30000"
+      COMMON_SEND_MESSAGE_PERIOD: "2000"
+      COMMON_CONSUMER_TIMEOUT: "2000"
+      COMMON_MESSAGE_SEND_TIME_CASH_COLLECTOR_RUN_PERIOD: "3600000"
+    #ports:
+    #  - "8080:8080"
+    restart: unless-stopped
+    networks:
+      - duster-net
+
+  postgres:
+    image: postgres:16
+    container_name: duster-postgres
+    environment:
+      POSTGRES_DB: duster
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    restart: unless-stopped
+    networks:
+      - duster-net
+
+  mqtt:
+    build:
+      context: ./mqtt/docker-mqtt
+      dockerfile: Dockerfile
+    image: custom-mosquitto:latest
+    restart: unless-stopped
+    ports:
+      - "${MQTT_PORT}:${MQTT_PORT}"
+      - "${WEBSOCKET_PORT}:${WEBSOCKET_PORT}"
+    volumes:
+      - ./mqtt/docker-mqtt/certs:/mosquitto/certs
+      - ./mqtt/docker-mqtt/mosquitto.conf:/mosquitto/config/mosquitto.conf
+    environment:
+      USERNAME: ${MQTT_BROKER_USERNAME}
+      PASSWORD: ${MQTT_BROKER_PASSWORD}
+      HOSTNAME: 0.0.0.0
+      LOG_TYPE: notice
+      MQTT_PORT: ${MQTT_PORT}
+      WEBSOCKET_PORT: ${WEBSOCKET_PORT}
+    networks:
+      - duster-net
+
+volumes:
+  pgdata:
+
+networks:
+  duster-net:
+    driver: bridge

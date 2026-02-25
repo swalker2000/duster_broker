@@ -8,13 +8,22 @@ import org.hibernate.annotations.JdbcTypeCode
 import org.hibernate.type.SqlTypes
 
 /*
+    Examples:
     producer/request/{deviceId}
   {
     "believerGuarantee": "RECEIPT_CONFIRMATION",
-    "command": "some_command",
+    "command": "pinModeOutput",
     "data": {
-      "key1": "value1",
-      "key2": 123
+      "pinNumber": "13"
+    }
+  }
+
+  {
+    "believerGuarantee": "RECEIPT_CONFIRMATION",
+    "command": "digitalWrite",
+    "data": {
+      "pinNumber": 13,
+      "pinValue : true
     }
   }
  */

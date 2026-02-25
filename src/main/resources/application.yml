@@ -1,24 +1,26 @@
 mqtt:
   broker:
-    url: ssl://localhost:8883
-    username: ADMIN  # Если не требуется, оставьте пустым
-    password: 1234  # Если не требуется, оставьте пустым
+    url: ${MQTT_BROKER_URL:ssl://localhost:8883}
+    username: ${MQTT_BROKER_USERNAME:ADMIN}  # Если не требуется, оставьте пустым
+    password: ${MQTT_BROKER_PASSWORD:1234}  # Если не требуется, оставьте пустым
   ssl:
-    insecure: true
-  qos: 1  # Опционально, QoS по умолчанию
+    insecure: ${MQTT_SSL_INSECURE:true}
+  qos: ${MQTT_QOS:1}  # Опционально, QoS по умолчанию
+
 common:
-  checkNotDeliveredTimeout: 120000
-  mqttWaitResponseTimeout: 60000
-  sendMessagePeriod: 1000
-  consumerTimeout: 1000
-  messageSendTimeCash :
-    collectorRunPeriod : 3600000
+  checkNotDeliveredTimeout: ${COMMON_CHECK_NOT_DELIVERED_TIMEOUT:60000}
+  mqttWaitResponseTimeout: ${COMMON_MQTT_WAIT_RESPONSE_TIMEOUT:30000}
+  sendMessagePeriod: ${COMMON_SEND_MESSAGE_PERIOD:2000}
+  consumerTimeout: ${COMMON_CONSUMER_TIMEOUT:2000}
+  messageSendTimeCash:
+    collectorRunPeriod: ${COMMON_MESSAGE_SEND_TIME_CASH_COLLECTOR_RUN_PERIOD:3600000}
+
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/duster
-    username: postgres
-    password: postgres
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/duster}
+    username: ${SPRING_DATASOURCE_USERNAME:postgres}
+    password: ${SPRING_DATASOURCE_PASSWORD:postgres}
   jpa:
-    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    database-platform: ${SPRING_JPA_DATABASE_PLATFORM:org.hibernate.dialect.PostgreSQLDialect}
     hibernate:
-      ddl-auto: create
+      ddl-auto: ${SPRING_JPA_HIBERNATE_DDL_AUTO:update}
