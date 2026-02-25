@@ -23,7 +23,7 @@ import org.hibernate.type.SqlTypes
     "command": "digitalWrite",
     "data": {
       "pinNumber": 13,
-      "pinValue : true
+      "pinValue" : true
     }
   }
  */

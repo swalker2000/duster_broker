@@ -22,12 +22,12 @@ import java.util.Date
 /**
  * Обработчик входящих сообщений по mqtt.
  *  - получает по MQTT команду на защищенную передачу сообщения в топике 'producer/request/{deviceId}'.
- *     Сообщение имеет тип JSON формата CommandMessageInDto
- *  - Преобразует сообщение в формат ProtectedMessage
+ *     Сообщение имеет тип JSON формата ProducerMessageInDto
+ *  - Преобразует сообщение в формат Message
  *  - Сохраняет полученное сообщение в БД флаг delivered false, получает id сообщения сохраненного в БД
- *  - Из ProtectedMessage получает MessageOutDto
- *  - MessageOutDto передает дальше в топике 'consumer/request/{deviceId}'
- *  - Если enum DeliveryGuarantee не NO ожидаем MessageInDto в топике 'consumer/response/{deviceId}'
+ *  - Из Message получает ConsumerMessageOutDto
+ *  - ConsumerMessageOutDto передает дальше в топике 'consumer/request/{deviceId}'
+ *  - Если enum DeliveryGuarantee не NO ожидаем ConsumerMessageInDto в топике 'consumer/response/{deviceId}'
  *  - После получения ответа меняем флаг delivered на true
  */
 @Service
