@@ -54,7 +54,7 @@ services:
 
   mqtt:
     build:
-      context: ./mqtt/docker-mqtt
+      context: mqtt/docker
       dockerfile: Dockerfile
     image: custom-mosquitto:latest
     restart: unless-stopped
