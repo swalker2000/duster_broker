@@ -1,7 +1,13 @@
 # Delivery Guarantee Service Running on Top of MQTT
 
 - Stores messages like Kafka. Guarantees message delivery even if the device is offline at the time of sending.
-- Monitors the message sending interval to the device. Sending many messages at once to an IoT device risks overflowing its input buffer. To avoid this, messages are delivered to the IoT device at a controlled interval.
+  It can guarantee delivery as:
+   - ```ONLY_LAST``` — only the last message with the selected command for this device.
+   - ```RECEIPT_CONFIRMATION``` — all sent messages.
+   - ```NO``` — no delivery guarantee.
+- Monitors the interval for sending messages to the device.
+If multiple messages are sent to an IoT device at once, there is a risk of overflowing its input buffer. 
+To avoid this, messages are delivered to the IoT device at a specified interval.
 
 ## Service Workflow (message transmission from producer to consumer (consumer ID: {deviceId}))
 

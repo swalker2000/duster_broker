@@ -44,8 +44,8 @@ class Message {
     /**
      * Сообщение доставлено.
      */
-    @Column
-    var delivered : Boolean = false
+    @Enumerated(EnumType.ORDINAL)
+    var deliveryStatus : DeliveryStatus = DeliveryStatus.NOT_DELIVERED
 
 
     /**

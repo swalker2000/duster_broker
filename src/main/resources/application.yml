@@ -1,10 +1,10 @@
 mqtt:
   broker:
     url: ${MQTT_BROKER_URL:ssl://localhost:8883}
-    username: ${MQTT_BROKER_USERNAME:ADMIN}  # Если не требуется, оставьте пустым
-    password: ${MQTT_BROKER_PASSWORD:1234}  # Если не требуется, оставьте пустым
+    username: ${MQTT_BROKER_USERNAME:ADMIN1}  # Если не требуется, оставьте пустым
+    password: ${MQTT_BROKER_PASSWORD:12345}  # Если не требуется, оставьте пустым
   ssl:
-    insecure: ${MQTT_SSL_INSECURE:true}
+    insecure: ${MQTT_SSL_INSECURE:false}
   qos: ${MQTT_QOS:1}  # Опционально, QoS по умолчанию
 
 common:

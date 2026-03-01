@@ -1,5 +1,7 @@
 package com.duster.mqtt.message
 
+import com.duster.database.data.DeliveryGuarantee
+import com.duster.database.data.DeliveryStatus
 import com.duster.database.data.Message
 import com.duster.mqtt.message.dto.ConsumerMessageOutDto
 import com.duster.mqtt.message.dto.ProducerMessageInDto
@@ -11,23 +13,28 @@ class MessageConverter {
 
     /**
      * Получить сообщение сохраняемое в БД.
-     * @param delivered было ли сообщение доставлено до consumer.
      */
     fun getMessage(
         producerMessageInDto: ProducerMessageInDto,
         deviseId: String,
-        delivered : Boolean = false,
         deliveredError : Boolean = false,
         createdDate : Date = Date(System.currentTimeMillis()),
         deliveredDate : Date? = null
         ): Message {
         val message = Message()
 
-        // Map fields from DTO to Message
+        message.deliveryStatus =  when(producerMessageInDto.believerGuarantee)
+        {
+            DeliveryGuarantee.NO->{
+                DeliveryStatus.UNKNOWN
+            }
+            else -> {
+                DeliveryStatus.NOT_DELIVERED
+            }
+        }
         message.deliveryGuarantee = producerMessageInDto.believerGuarantee
         message.command = producerMessageInDto.command
         message.data = producerMessageInDto.data
-        message.delivered = delivered
         message.deliveredError = deliveredError
         message.createdDate = createdDate
         message.deliveredDate = deliveredDate

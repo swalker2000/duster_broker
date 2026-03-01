@@ -1,6 +1,7 @@
 package com.duster.mqtt
 
 import com.duster.database.MainRepository
+import com.duster.database.data.DeliveryStatus
 import com.duster.database.data.Message
 import com.duster.mqtt.cash.MessageSendTimeCash
 
@@ -75,7 +76,7 @@ class DeliveryControlService {
             //проставляем флаг ошибка отправки на все найденные сообщения
             launch {
                 messageList
-                    .filter { message -> message.deliveredError }
+                    .filter { message -> !message.deliveredError }
                     .forEach { message -> mainRepository.updateDeliveryError(message.id, true)}
             }
             //производим доотправку
@@ -113,7 +114,7 @@ class DeliveryControlService {
                 logger.error("    - message ${message.id} is for devise '${message.deviseId}' is not found")
             }
             //проверяем доставили ли сообщение
-            else if(!mainRepository.findDeliveredById(message.id).get())
+            else if(mainRepository.findDeliveredById(message.id).get()!= DeliveryStatus.DELIVERED)
             {
                 //если не доставили прерываем доставку сообщений для данного устройства
                 logger.warn("    - message '${message.id}' is for devise '${message.deviseId}' not delivered. Break deliver for this devise.")

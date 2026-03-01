@@ -1,5 +1,6 @@
 package com.duster.database
 
+import com.duster.database.data.DeliveryStatus
 import com.duster.database.data.Message
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Modifying
@@ -15,11 +16,12 @@ interface MessageRepository: JpaRepository<Message, Int> {
 
 
     /**
-     * Проверяет, существует ли хотя бы одно не доставленное сообщение для данного deviceId.
+     * Проверяет, существует ли хотя бы одно не доставленное сообщение для данного deviceId. с данным статусом доставки.
      * @param deviseId идентификатор устройства
+     * @param deliveryStatus статус доставки
      * @return true, если есть хотя бы одно сообщение с delivered = false для указанного deviseId
      */
-    fun existsByDeviseIdAndDeliveredFalse(deviseId: String): Boolean
+    fun existsByDeviseIdAndDeliveryStatus(deviseId: String,deliveryStatus: DeliveryStatus): Boolean
 
 
     /**
@@ -27,17 +29,17 @@ interface MessageRepository: JpaRepository<Message, Int> {
      * @param id идентификатор сообщения
      * @return true если сообщение доставлено, false если нет, или null если сообщение с таким id не найдено
      */
-    @Query("SELECT m.delivered FROM Message m WHERE m.id = :id")
-    fun findDeliveredById(@Param("id") id: Int): Optional<Boolean>
+    @Query("SELECT m.deliveryStatus FROM Message m WHERE m.id = :id")
+    fun findDeliveredById(@Param("id") id: Int): Optional<DeliveryStatus>
 
     /**
      * Найти все сообщения по значению флага delivered, и созданные раньше createDate.
      *  - вывод отсортирован по дате создания (по возрастанию).
-     *  @param delivered было ли сообщение доставлено
+     *  @param deliveredStatus статус доставки сообщения
      *  @param searchBefore дата до которой выполняется поиск
      */
-    fun findAllByDeliveredAndCreatedDateLessThanOrderByCreatedDateAsc(
-        delivered: Boolean,
+    fun findAllByDeliveryStatusAndCreatedDateLessThanOrderByCreatedDateAsc(
+        deliveredStatus: DeliveryStatus,
         searchBefore: Date
     ): List<Message>
 
@@ -50,13 +52,32 @@ interface MessageRepository: JpaRepository<Message, Int> {
     @Transactional
     @Modifying
     @Query(
-        "UPDATE Message m SET m.delivered = :delivered, " +
+        "UPDATE Message m SET m.deliveryStatus = :deliveryStatus, " +
                 "m.deliveredDate = :deliveredDate WHERE m.id = :id")
     fun updateDeliveryStatus(
         @Param("id") id: Int,
-        @Param("delivered") delivered: Boolean,
+        @Param("deliveryStatus") deliveryStatus: DeliveryStatus,
         @Param("deliveredDate") deliveredDate: Date
     ): Int
+
+    /**
+     * Обновить статус доставки для сообщений.
+     * Устанавливает поля deliveryStatus.
+     * @param command обновления коснутся только сообщений с этой командой
+     * @param deviseId обновления коснутся только сообщений с данным deviseId
+     * @return количество обновленных данных в базе.
+     */
+    @Transactional
+    @Modifying
+    @Query(
+        "UPDATE Message m SET m.deliveryStatus = :deliveryStatus " +
+                "WHERE m.command = :command AND m.deviseId = :deviseId")
+    fun updateDeliveryStatus(
+        @Param("command") command: String,
+        @Param("deviseId") deviseId: String,
+        @Param("deliveryStatus") deliveryStatus: DeliveryStatus
+    ): Int
+
 
     /**
      * Обновить флаг ошибки доставки для сообщения с заданным id.

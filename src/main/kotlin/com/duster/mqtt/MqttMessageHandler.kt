@@ -2,6 +2,7 @@ package com.duster.mqtt
 
 import com.duster.database.MainRepository
 import com.duster.database.data.DeliveryGuarantee
+import com.duster.database.data.DeliveryStatus
 import com.duster.mqtt.cash.MessageSendTimeCash
 import com.duster.mqtt.message.MessageConverter
 import com.duster.mqtt.message.dto.ConsumerMessageInDto
@@ -98,9 +99,12 @@ class MqttMessageHandler() {
                 ProducerMessageInDto::class.java
             )
             logger.info("RD_PRODUCER [$deviseId] : ${message.payload}")
+
             var message = messageConverter.getMessage(producerMessageIn, deviseId)
             val existsNotDeliveredMessages = mainRepository.existsByDeviseIdAndDeliveredFalse(deviseId)
-            message = mainRepository.saveMessage(message)//нам очень важен id присваиваемый БД
+            //WARN : если сообщение имеет DeliveryGuarantee ONLY_LAST, всем сообщения с данной командой для данного устройства
+            //отправленные до этого будет проставлен статус доставки CANCELLED
+            message = mainRepository.saveNewMessage(message)//нам очень важен id присваиваемый БД
             val consumerMessageOutDto: ConsumerMessageOutDto = messageConverter.getConsumerMessageOutDto(message)
             //Проверяем можно ли данному устройству отправить сейчас сообщение исходя из времени последней отправки?
             //Защита от ddos.
@@ -110,7 +114,7 @@ class MqttMessageHandler() {
                 consumerMessagePublisher.publishMessageToConsumer(consumerMessageOutDto, deviseId)
                 //если гарантия доставки отсутсвует, проставляем метку, что сообщение доставлено
                 if (message.deliveryGuarantee == DeliveryGuarantee.NO)
-                    mainRepository.updateDeliveryStatus(message.id, true, Date(System.currentTimeMillis()))
+                    mainRepository.updateDeliveryStatus(message.id, DeliveryStatus.UNKNOWN, Date(System.currentTimeMillis()))
             } else {
                 logger.warn("Can`t send message to [$deviseId] immediately.")
                 if (!messageSendTimeCashAvailable)
@@ -131,7 +135,7 @@ class MqttMessageHandler() {
             ConsumerMessageInDto::class.java
         )
         logger.info("RD_CONSUMER [$deviseId] : $message.payload")
-        mainRepository.updateDeliveryStatus(consumerMessageInDto.id, true,  Date(System.currentTimeMillis()))
+        mainRepository.updateDeliveryStatus(consumerMessageInDto.id, DeliveryStatus.DELIVERED,  Date(System.currentTimeMillis()))
     }
 
     private fun getMessageSourceFromTopic(topic: String): MessageSource? {

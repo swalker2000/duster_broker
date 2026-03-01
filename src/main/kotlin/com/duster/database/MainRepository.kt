@@ -1,13 +1,13 @@
 package com.duster.database
 
+import com.duster.database.data.DeliveryGuarantee
+import com.duster.database.data.DeliveryStatus
 import com.duster.database.data.Message
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.data.jpa.repository.Query
-import org.springframework.data.repository.query.Param
 import org.springframework.stereotype.Repository
+import org.springframework.transaction.annotation.Transactional
 import java.util.Date
 import java.util.Optional
-import java.util.function.Consumer
 
 @Repository
 class MainRepository {
@@ -19,10 +19,9 @@ class MainRepository {
     /**
      * Получить статус доставки сообщения по его id.
      * @param id идентификатор сообщения
-     * @return true если сообщение доставлено, false если нет, или null если сообщение с таким id не найдено
+     * @return статус доставки, или null если сообщение с таким id не найдено
      */
-    @Query("SELECT m.delivered FROM Message m WHERE m.id = :id")
-    fun findDeliveredById(@Param("id") id: Int): Optional<Boolean> {
+    fun findDeliveredById(id: Int): Optional<DeliveryStatus> {
         return messageRepository.findDeliveredById(id)
     }
 
@@ -33,7 +32,7 @@ class MainRepository {
      */
     fun existsByDeviseIdAndDeliveredFalse(deviseId: String): Boolean
     {
-        return messageRepository.existsByDeviseIdAndDeliveredFalse(deviseId)
+        return messageRepository.existsByDeviseIdAndDeliveryStatus(deviseId, DeliveryStatus.NOT_DELIVERED)
     }
 
     /**
@@ -45,13 +44,18 @@ class MainRepository {
         searchBefore: Date
     ): List<Message>
     {
-        return messageRepository.findAllByDeliveredAndCreatedDateLessThanOrderByCreatedDateAsc(false, searchBefore)
+        return messageRepository.findAllByDeliveryStatusAndCreatedDateLessThanOrderByCreatedDateAsc(DeliveryStatus.NOT_DELIVERED, searchBefore)
     }
 
     /**
      * Сохранить новое сообщение.
+     * WARN : если сообщение имеет DeliveryGuarantee ONLY_LAST, всем сообщения с данной командой для данного устройства
+     * отправленные до этого будет проставлен статус доставки CANCELLED
      */
-    fun saveMessage(message: Message) : Message {
+    @Transactional
+    fun saveNewMessage(message: Message) : Message {
+        if(message.deliveryGuarantee==DeliveryGuarantee.ONLY_LAST)
+            messageRepository.updateDeliveryStatus(message.command, message.deviseId, DeliveryStatus.CANCELLED)
         return messageRepository.save(message)
     }
 
@@ -61,11 +65,11 @@ class MainRepository {
      */
     fun updateDeliveryStatus(
         id: Int,
-        delivered: Boolean,
+        deliveryStatus: DeliveryStatus,
         deliveredDate: Date
     ): Int
     {
-        return messageRepository.updateDeliveryStatus(id, delivered,  deliveredDate)
+        return messageRepository.updateDeliveryStatus(id, deliveryStatus,  deliveredDate)
     }
 
     /**
