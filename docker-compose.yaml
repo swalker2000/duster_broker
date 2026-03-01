@@ -14,7 +14,7 @@ services:
       SPRING_DATASOURCE_PASSWORD: postgres
 
       # --- JPA  ---
-      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      SPRING_JPA_HIBERNATE_DDL_AUTO: create
       SPRING_JPA_DATABASE_PLATFORM: org.hibernate.dialect.PostgreSQLDialect
 
       # --- MQTT ---
@@ -54,7 +54,7 @@ services:
 
   mqtt:
     build:
-      context: mqtt/docker
+      context: mqtt/docker-mqtt
       dockerfile: Dockerfile
     image: custom-mosquitto:latest
     restart: unless-stopped
