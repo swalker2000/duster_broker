@@ -9,12 +9,12 @@ services:
       - mqtt
     environment:
       # --- Postgres ---
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/duster
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/postgres
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: postgres
 
       # --- JPA  ---
-      SPRING_JPA_HIBERNATE_DDL_AUTO: create
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
       SPRING_JPA_DATABASE_PLATFORM: org.hibernate.dialect.PostgreSQLDialect
 
       # --- MQTT ---
