@@ -20,6 +20,11 @@ import org.springframework.stereotype.Service
 import tools.jackson.databind.ObjectMapper
 import java.util.Date
 
+/*
+'producer/request
+
+*/
+
 /**
  * Обработчик входящих сообщений по mqtt.
  *  - получает по MQTT команду на защищенную передачу сообщения в топике 'producer/request/{deviceId}'.
@@ -30,6 +35,15 @@ import java.util.Date
  *  - ConsumerMessageOutDto передает дальше в топике 'consumer/request/{deviceId}'
  *  - Если enum DeliveryGuarantee не NO ожидаем ConsumerMessageInDto в топике 'consumer/response/{deviceId}'
  *  - После получения ответа меняем флаг delivered на true
+ *
+ * TODO: Возврат статуса сообщения producer:
+ *  - producer в сообщение ProducerMessageInDto выставляет:
+ *    - tmpId (временный id сообщения) не равный 0.  При 0, отсутсвии поля и null считается, что мы не ждем ответа.
+ *    - producerDeviceId : id producer другими словами id устройства (deviceId) которое сгенерировало сообщение.
+ *    (подробнее смотрите классы Message и ProducerMessageInDto)
+ *    - producer получает сообщение в топике producer/response/{producerDeviceId}.
+ *    Сообщение имеет формат ProducerMessageOutDto. В котором сообщению присваивается постоянный id. Так же присутсвует
+ *    временный tmpId созданный producer
  */
 @Service
 class MqttMessageHandler() {
