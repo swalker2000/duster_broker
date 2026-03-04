@@ -11,13 +11,7 @@ import org.hibernate.type.SqlTypes
 /*
     Examples:
     producer/request/{deviceId}
-  {
-    "believerGuarantee": "RECEIPT_CONFIRMATION",
-    "command": "pinModeOutput",
-    "data": {
-      "pinNumber": "13"
-    }
-  }
+
 
   {
     "believerGuarantee": "RECEIPT_CONFIRMATION",
@@ -30,14 +24,15 @@ import org.hibernate.type.SqlTypes
 
   {
     "believerGuarantee": "RECEIPT_CONFIRMATION",
-    "command": "digitalWrite",
+    "command": "blink",
     "messageBirthCertificate" : {
         "tmpId" : 3,
         "producerDeviseId" : "0"
     },
     "data": {
       "pinNumber": 13,
-      "pinValue" : true
+      "period" : 1000,
+      "count" : 5
     }
   }
  */

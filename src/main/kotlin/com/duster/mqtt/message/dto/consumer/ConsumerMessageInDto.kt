@@ -1,5 +1,6 @@
 package com.duster.mqtt.message.dto.consumer
 
+import com.duster.database.data.DeliveryStatus
 import com.duster.mqtt.message.dto.MessageInDto
 
 /*
@@ -16,3 +17,11 @@ import com.duster.mqtt.message.dto.MessageInDto
 class ConsumerMessageInDto (
     var id: Int = 0,
     ) : MessageInDto
+{
+    /**
+     * Статус доставки сообщения.
+     *  - Если consumer возвращает ответ без этого поля считаем что сообщение доставлено (DeliveryStatus.DELIVERED).
+     */
+    var deliveryStatus : DeliveryStatus? = null
+    get() = if (field == null) DeliveryStatus.DELIVERED else field
+}

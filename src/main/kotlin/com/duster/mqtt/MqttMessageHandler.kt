@@ -151,12 +151,18 @@ class MqttMessageHandler() {
 
     private fun handlerConsumerMessage(message: Message<String>, deviseId : String, headers : MessageHeaders)
     {
-        val consumerMessageInDto = objectMapper.readValue(
-            message.payload,
-            ConsumerMessageInDto::class.java
-        )
+        val consumerMessageInDto = objectMapper.readValue(message.payload, ConsumerMessageInDto::class.java)
         logger.info("RD_CONSUMER [$deviseId] : $message.payload")
-        messageStatusChange.updateDeliveryStatus(consumerMessageInDto.id, DeliveryStatus.DELIVERED,  Date(System.currentTimeMillis()))
+        if (consumerMessageInDto.deliveryStatus!!.canReceiveFromConsumer) {
+            messageStatusChange.updateDeliveryStatus(
+                consumerMessageInDto.id,
+                consumerMessageInDto.deliveryStatus!!,
+                Date(System.currentTimeMillis())
+            )
+        }
+        else{
+            logger.error("Can' receive status ${consumerMessageInDto.deliveryStatus} from consumer!")
+        }
     }
 
     private fun getMessageSourceFromTopic(topic: String): MessageSource? {
