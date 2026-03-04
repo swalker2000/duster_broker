@@ -1,6 +1,7 @@
-package com.duster.mqtt
+package com.duster.mqtt.publisher
 
-import com.duster.mqtt.message.dto.ConsumerMessageOutDto
+import com.duster.mqtt.MessageSource
+import com.duster.mqtt.message.dto.consumer.ConsumerMessageOutDto
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier

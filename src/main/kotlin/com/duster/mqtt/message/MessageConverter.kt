@@ -3,8 +3,9 @@ package com.duster.mqtt.message
 import com.duster.database.data.DeliveryGuarantee
 import com.duster.database.data.DeliveryStatus
 import com.duster.database.data.Message
-import com.duster.mqtt.message.dto.ConsumerMessageOutDto
-import com.duster.mqtt.message.dto.ProducerMessageInDto
+import com.duster.mqtt.message.dto.consumer.ConsumerMessageOutDto
+import com.duster.mqtt.message.dto.producer.ProducerMessageInDto
+import com.duster.mqtt.message.dto.producer.ProducerMessageOutDto
 import org.springframework.stereotype.Component
 import java.util.Date
 
@@ -32,6 +33,9 @@ class MessageConverter {
                 DeliveryStatus.NOT_DELIVERED
             }
         }
+        message.producerDeviseId = producerMessageInDto.messageBirthCertificate?.producerDeviseId
+        message.tmpId = producerMessageInDto.messageBirthCertificate?.tmpId
+
         message.deliveryGuarantee = producerMessageInDto.believerGuarantee
         message.command = producerMessageInDto.command
         message.data = producerMessageInDto.data
@@ -42,21 +46,6 @@ class MessageConverter {
         return message
     }
 
-    fun fromDto(dto: ConsumerMessageOutDto, topic: String): Message {
-        return Message().also {
-            it.id = dto.id.toInt()
-            it.command = dto.command
-            it.deliveryGuarantee = dto.believerGuarantee
-            it.data = dto.data
-            // остальные поля остаются с значениями по умолчанию:
-            it.deviseId = topic
-            // createdDate = текущая дата
-            // sendDate = текущая дата
-            // delivered = false
-            // deliveredError = false
-            // timePolicy = TimePolicy.CURRENT
-        }
-    }
 
     fun getConsumerMessageOutDto(message: Message): ConsumerMessageOutDto {
         return ConsumerMessageOutDto(
@@ -67,5 +56,9 @@ class MessageConverter {
             believerGuarantee = message.deliveryGuarantee
             data = message.data
         }
+    }
+
+    fun getProducerMessageOutDto(message: Message): ProducerMessageOutDto {
+        return ProducerMessageOutDto(message.id, message.tmpId!!, message.deliveryStatus)
     }
 }

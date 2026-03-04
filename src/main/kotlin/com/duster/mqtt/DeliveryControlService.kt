@@ -6,6 +6,7 @@ import com.duster.database.data.Message
 import com.duster.mqtt.cash.MessageSendTimeCash
 
 import com.duster.mqtt.message.MessageConverter
+import com.duster.mqtt.publisher.ConsumerMessagePublisher
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking

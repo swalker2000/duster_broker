@@ -5,9 +5,11 @@ import com.duster.database.data.DeliveryGuarantee
 import com.duster.database.data.DeliveryStatus
 import com.duster.mqtt.cash.MessageSendTimeCash
 import com.duster.mqtt.message.MessageConverter
-import com.duster.mqtt.message.dto.ConsumerMessageInDto
-import com.duster.mqtt.message.dto.ConsumerMessageOutDto
-import com.duster.mqtt.message.dto.ProducerMessageInDto
+import com.duster.mqtt.message.dto.consumer.ConsumerMessageInDto
+import com.duster.mqtt.message.dto.consumer.ConsumerMessageOutDto
+import com.duster.mqtt.message.dto.producer.ProducerMessageInDto
+import com.duster.mqtt.publisher.ConsumerMessagePublisher
+import com.duster.mqtt.publisher.ProducerMessagePublisher
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
@@ -17,6 +19,7 @@ import org.springframework.messaging.Message
 import org.springframework.messaging.MessageChannel
 import org.springframework.messaging.MessageHeaders
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 import tools.jackson.databind.ObjectMapper
 import java.util.Date
 
@@ -75,6 +78,9 @@ class MqttMessageHandler() {
     private lateinit var messageSendTimeCash: MessageSendTimeCash
 
     @Autowired
+    private lateinit var messageStatusChange: MessageStatusChange
+
+    @Autowired
     private lateinit var objectMapper: ObjectMapper
 
     @Qualifier("outputChannel")
@@ -119,6 +125,7 @@ class MqttMessageHandler() {
             //WARN : если сообщение имеет DeliveryGuarantee ONLY_LAST, всем сообщения с данной командой для данного устройства
             //отправленные до этого будет проставлен статус доставки CANCELLED
             message = mainRepository.saveNewMessage(message)//нам очень важен id присваиваемый БД
+            messageStatusChange.sendDeliveryStatusToProducerIfRequired(message)//:TODO сделать паралельно остальной обработке
             val consumerMessageOutDto: ConsumerMessageOutDto = messageConverter.getConsumerMessageOutDto(message)
             //Проверяем можно ли данному устройству отправить сейчас сообщение исходя из времени последней отправки?
             //Защита от ddos.
@@ -149,7 +156,7 @@ class MqttMessageHandler() {
             ConsumerMessageInDto::class.java
         )
         logger.info("RD_CONSUMER [$deviseId] : $message.payload")
-        mainRepository.updateDeliveryStatus(consumerMessageInDto.id, DeliveryStatus.DELIVERED,  Date(System.currentTimeMillis()))
+        messageStatusChange.updateDeliveryStatus(consumerMessageInDto.id, DeliveryStatus.DELIVERED,  Date(System.currentTimeMillis()))
     }
 
     private fun getMessageSourceFromTopic(topic: String): MessageSource? {

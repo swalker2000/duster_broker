@@ -71,7 +71,9 @@ interface MessageRepository: JpaRepository<Message, Int> {
     @Modifying
     @Query(
         "UPDATE Message m SET m.deliveryStatus = :deliveryStatus " +
-                "WHERE m.command = :command AND m.deviseId = :deviseId")
+                "WHERE m.command = :command AND " +
+                "m.deviseId = :deviseId AND " +
+                "m.deliveryStatus = com.duster.database.data.DeliveryStatus.NOT_DELIVERED ")
     fun updateDeliveryStatus(
         @Param("command") command: String,
         @Param("deviseId") deviseId: String,

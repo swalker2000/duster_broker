@@ -62,14 +62,17 @@ class MainRepository {
 
     /**
      * Обновить статус доставки сообщения.
+     * @return наше сообщение с обновленным статусом.
      */
+    @Transactional
     fun updateDeliveryStatus(
         id: Int,
         deliveryStatus: DeliveryStatus,
         deliveredDate: Date
-    ): Int
+    )  : Message
     {
-        return messageRepository.updateDeliveryStatus(id, deliveryStatus,  deliveredDate)
+        messageRepository.updateDeliveryStatus(id, deliveryStatus,  deliveredDate)
+        return messageRepository.findById(id).get()
     }
 
     /**
