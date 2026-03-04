@@ -39,7 +39,7 @@ import java.util.Date
  *  - Если enum DeliveryGuarantee не NO ожидаем ConsumerMessageInDto в топике 'consumer/response/{deviceId}'
  *  - После получения ответа меняем флаг delivered на true
  *
- * TODO: Возврат статуса сообщения producer:
+ * Возврат статуса сообщения producer:
  *  - producer в сообщение ProducerMessageInDto выставляет:
  *    - tmpId (временный id сообщения) не равный 0.  При 0, отсутсвии поля и null считается, что мы не ждем ответа.
  *    - producerDeviceId : id producer другими словами id устройства (deviceId) которое сгенерировало сообщение.

@@ -1,11 +1,16 @@
 # Сервис гарантии доставки работающий поверх MQTT.
-- хранит сообщения как Kafka. Гарантирует доставку сообщения даже если устройство выключено в момент отправки. 
-Может гарантировать как доставку:
-  - ```ONLY_LAST``` последнего сообщения с выбранной командой для данного устройства. 
-  - ```RECEIPT_CONFIRMATION``` всех отправленных сообщений.
-  - ```NO``` без гарантии доставки.
+- хранит сообщения как Kafka. Гарантирует доставку сообщения даже если устройство выключено в момент отправки.
+  Может гарантировать как доставку:
+    - ```ONLY_LAST``` - последнего сообщения с выбранной командой для данного устройства.
+    - ```RECEIPT_CONFIRMATION``` - всех отправленных сообщений.
+    - ```NO``` - без гарантии доставки.
 - следит за периодом отправки сообщений на устройство. Если разом отправить множество сообщений на iot есть риск переполнения входного буфера. Во избежание подобной ситуации сообщения на iot устройство доходят с определенным интервалом.
-
+- дает возможность отправителю подписаться на смену статуса своего сообщения. Сейчас доступны следующие статусы:
+    - ```NOT_DELIVERED``` - сообщение не доставлено.
+    - ```DELIVERED``` - сообщение доставлено.
+    - ```COMPLETED``` - задача отправленная в сообщении выполнена.
+    - ```COMPLETED_WITH_ERROR``` - задача, отправленная в сообщении, не выполнена или выполнена с ошибкой.
+  
 ## Алгоритм работы сервиса (передача сообщения от producer к consumer (id consumer : {deviceId}) )
 1. получает по MQTT команду передачу сообщения в топике 'producer/request/{deviceId}'.
     Сообщение имеет тип JSON формата ProducerMessageInDto
@@ -42,6 +47,71 @@
   }
 ```
 5. Если сообщение от consumer не поступило в заданный период возвращаемся к пункту 3.
+
+## Алгоритм работы сервиса когда producer подписывается на изменения статуса доставки своего сообщения
+1. получает по MQTT команду передачу сообщения в топике 'producer/request/{deviceId}'.
+   Сообщение имеет тип JSON формата ProducerMessageInDto
+    - `messageBirthCertificate` - информация о происхождении сообщения. Если поле не найдено или null мы не информируем producer о сообщении.
+      - `tmpId` - (временный id сообщения) не равный 0.
+      - `producerDeviseId` - id producer другими словами id устройства (deviceId) которое сгенерировало сообщение.
+2. 
+```json
+  {
+  "believerGuarantee": "RECEIPT_CONFIRMATION",
+  "messageBirthCertificate" : {
+    "tmpId" : 3,
+    "producerDeviseId" : "0"
+  },
+  "command": "some_command",
+  "data": {
+    "key1" : "value1",
+    "key2" : "value2"
+    }
+  }
+```
+
+3. Из ProducerMessageInDto получает ConsumerMessageOutDto последний снабжается уникальным id
+
+```json
+  {
+      "id":2,
+      "believerGuarantee":"RECEIPT_CONFIRMATION",
+      "command":"digitalWrite",
+      "currentTimestamp":1772021717684,
+      "data":{
+        "key1" : "value1",
+        "key2" : "value2"
+      }
+   }
+```
+4. На producer в топик producer/response/{producerDeviceId} передается ProducerMessageOutDto с сгенерированным ранее id (в поле id).
+```json
+  {
+      "id":2,
+      "tmpId" : 3,
+      "deliveryStatus": "NOT_DELIVERED"
+   }
+```
+5. ConsumerMessageOutDto передает на Consumer в топике 'consumer/request/{deviceId}'
+6. Если enum DeliveryGuarantee не NO ожидаем что consumer вернет ConsumerMessageInDto (с тем же id с которым пришел ConsumerMessageOutDto) в топике 'consumer/response/{deviceId}'<br>
+Если поле `deliveryStatus` не передается или null считаем, что статус `DELIVERED`.<br>
+Если через какое то время мы хотим поменять статус сообщения на `COMPLETED_WITH_ERROR` или `COMPLETED` делаем это в этом же сообщении.
+```json
+  {
+      "id":2,
+      "deliveryStatus" : "DELIVERED"
+  }
+```
+7. Если сообщение от consumer не поступило в заданный период возвращаемся к пункту 3. <br>
+Если поступило информируем об этом producer в топике producer/response/{producerDeviceId} сообщением ProducerMessageOutDto.<br>
+О всех дальнейших изменениях `deliveryStatus` сообщения информируем так же в этом же топике.
+```json
+  {
+      "id":2,
+      "tmpId" : 3,
+      "deliveryStatus": "DELIVERED"
+   }
+```
 
 ## Запуск
 ### Запуск через docker compose

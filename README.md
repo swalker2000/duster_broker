@@ -1,13 +1,15 @@
-# Delivery Guarantee Service Running on Top of MQTT
-
+# A delivery guarantee service operating over MQTT.
 - Stores messages like Kafka. Guarantees message delivery even if the device is offline at the time of sending.
-  It can guarantee delivery as:
-   - ```ONLY_LAST``` — only the last message with the selected command for this device.
-   - ```RECEIPT_CONFIRMATION``` — all sent messages.
-   - ```NO``` — no delivery guarantee.
-- Monitors the interval for sending messages to the device.
-If multiple messages are sent to an IoT device at once, there is a risk of overflowing its input buffer. 
-To avoid this, messages are delivered to the IoT device at a specified interval.
+  Can guarantee delivery as:
+    - ```ONLY_LAST``` - only the last message with a selected command for a given device.
+    - ```RECEIPT_CONFIRMATION``` - all sent messages.
+    - ```NO``` - no delivery guarantee.
+- Monitors the period of sending messages to the device. Sending many messages to an IoT device at once risks overflowing its input buffer. To avoid this situation, messages reach the IoT device at a specific interval.
+- Provides the sender with the ability to subscribe to changes in their message's status. The following statuses are currently available:
+    - ```NOT_DELIVERED``` - the message was not delivered.
+    - ```DELIVERED``` - the message was delivered.
+    - ```COMPLETED``` - the task sent in the message was completed successfully.
+    - ```COMPLETED_WITH_ERROR``` - the task sent in the message was not completed or was completed with an error.
 
 ## Service Workflow (message transmission from producer to consumer (consumer ID: {deviceId}))
 
@@ -51,6 +53,80 @@ To avoid this, messages are delivered to the IoT device at a specified interval.
    ```
 
 5. If the message from the consumer is not received within the specified timeout, it returns to step 3.
+
+## Service algorithm when a producer subscribes to changes in the delivery status of its message
+
+1. Receives via MQTT a command to transmit a message in the topic `'producer/request/{deviceId}'`.  
+   The message is of JSON type `ProducerMessageInDto`.
+    - `messageBirthCertificate` – information about the message origin. If the field is missing or null, we do not inform the producer about the message.
+        - `tmpId` – temporary message ID, not equal to 0.
+        - `producerDeviseId` – producer ID, i.e., the device ID (`deviceId`) that generated the message.
+
+2.
+```json
+  {
+    "believerGuarantee": "RECEIPT_CONFIRMATION",
+    "messageBirthCertificate": {
+      "tmpId": 3,
+      "producerDeviseId": "0"
+    },
+    "command": "some_command",
+    "data": {
+      "key1": "value1",
+      "key2": "value2"
+    }
+  }
+```
+
+3. From `ProducerMessageInDto`, obtain `ConsumerMessageOutDto`; the latter is assigned a unique ID.
+
+```json
+  {
+    "id": 2,
+    "believerGuarantee": "RECEIPT_CONFIRMATION",
+    "command": "digitalWrite",
+    "currentTimestamp": 1772021717684,
+    "data": {
+      "key1": "value1",
+      "key2": "value2"
+    }
+  }
+```
+
+4. To the producer, in the topic `producer/response/{producerDeviceId}`, send `ProducerMessageOutDto` with the previously generated ID (in the `id` field).
+
+```json
+  {
+    "id": 2,
+    "tmpId": 3,
+    "deliveryStatus": "NOT_DELIVERED"
+  }
+```
+
+5. `ConsumerMessageOutDto` is sent to the consumer in the topic `'consumer/request/{deviceId}'`.
+
+6. If the enum `DeliveryGuarantee` is not `NO`, we expect the consumer to return `ConsumerMessageInDto` (with the same ID as the `ConsumerMessageOutDto`) in the topic `'consumer/response/{deviceId}'`.  
+   If the `deliveryStatus` field is missing or null, we consider the status `DELIVERED`.  
+   If after some time we want to change the message status to `COMPLETED_WITH_ERROR` or `COMPLETED`, we do so in the same message.
+
+```json
+  {
+    "id": 2,
+    "deliveryStatus": "DELIVERED"
+  }
+```
+
+7. If a message from the consumer is not received within a specified period, we return to step 3.  
+   If it is received, we inform the producer in the topic `producer/response/{producerDeviceId}` with a `ProducerMessageOutDto` message.  
+   All further changes to the `deliveryStatus` of the message are also reported in the same topic.
+
+```json
+  {
+    "id": 2,
+    "tmpId": 3,
+    "deliveryStatus": "DELIVERED"
+  }
+```
 
 ## Launch
 
