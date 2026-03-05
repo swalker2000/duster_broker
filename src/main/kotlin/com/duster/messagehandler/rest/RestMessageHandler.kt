@@ -3,9 +3,11 @@ package com.duster.messagehandler.rest
 import com.duster.messagehandler.CommonMessageService
 import com.duster.messagehandler.data.dto.consumer.ConsumerMessageInDto
 import com.duster.messagehandler.data.dto.producer.message.ProducerMessageInDto
+import io.swagger.v3.oas.annotations.Operation
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
@@ -18,6 +20,7 @@ class RestMessageHandler {
     @Autowired
     private lateinit var commonMessageService: CommonMessageService
 
+    @Operation(summary = "Publish new message (from producer).")
     @PutMapping("/producer/request/{deviceId}")
     fun newProducerMessageIn(
         @PathVariable deviceId: String,               // deviceId из URL
@@ -28,7 +31,8 @@ class RestMessageHandler {
     }
 
 
-    @PutMapping("/consumer/request/{deviceId}")
+    @Operation(summary = "Set message delivery status (from consumer).")
+    @PostMapping("/consumer/request/{deviceId}")
     fun newConsumerMessageIn(
         @PathVariable deviceId: String,               // deviceId из URL
         @RequestBody  consumerMessageInDto: ConsumerMessageInDto  // JSON в теле
