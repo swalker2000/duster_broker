@@ -1,4 +1,4 @@
-package com.duster.mqtt.config
+package com.duster.messagehandler.mqtt.config
 
 import org.eclipse.paho.client.mqttv3.MqttConnectOptions
 import org.springframework.beans.factory.annotation.Value

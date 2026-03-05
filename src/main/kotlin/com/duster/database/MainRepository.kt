@@ -15,6 +15,15 @@ class MainRepository {
     @Autowired
     private lateinit var messageRepository: MessageRepository
 
+    /**
+     * Получить самое старое не доставленное сообщение для устройства.
+     */
+    fun findOldestNotDeliveredMessageForDevise(
+        deviseId: String,
+    ) : Optional<Message>
+    {
+        return messageRepository.findFirstByDeviseIdAndDeliveryStatusOrderByCreatedDateAsc(deviseId, DeliveryStatus.NOT_DELIVERED)
+    }
 
     /**
      * Получить статус доставки сообщения по его id.

@@ -1,4 +1,4 @@
-package com.duster.mqtt.message.dto.producer
+package com.duster.messagehandler.data.dto.producer.message
 
 /**
  * Информация о происхождении сообщения.

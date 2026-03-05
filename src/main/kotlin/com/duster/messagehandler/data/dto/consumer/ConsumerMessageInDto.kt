@@ -1,7 +1,7 @@
-package com.duster.mqtt.message.dto.consumer
+package com.duster.messagehandler.data.dto.consumer
 
 import com.duster.database.data.DeliveryStatus
-import com.duster.mqtt.message.dto.MessageInDto
+import com.duster.messagehandler.data.dto.InDto
 
 /*
     Example :
@@ -16,7 +16,7 @@ import com.duster.mqtt.message.dto.MessageInDto
  */
 class ConsumerMessageInDto (
     var id: Int = 0,
-    ) : MessageInDto
+    ) : InDto
 {
     /**
      * Статус доставки сообщения.

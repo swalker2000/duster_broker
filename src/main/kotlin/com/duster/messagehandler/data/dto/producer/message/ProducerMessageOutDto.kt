@@ -1,7 +1,7 @@
-package com.duster.mqtt.message.dto.producer
+package com.duster.messagehandler.data.dto.producer.message
 
 import com.duster.database.data.DeliveryStatus
-import com.duster.mqtt.message.dto.MessageOutDto
+import com.duster.messagehandler.data.dto.OutDto
 
 /**
  * Сообщение от брокера к producer с описанием статуса отправленного producer сообщения.
@@ -13,4 +13,4 @@ class ProducerMessageOutDto(
     var id: Int,
     var tmpId : Int,
     var deliveryStatus: DeliveryStatus
-) : MessageOutDto
+) : OutDto

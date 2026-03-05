@@ -1,4 +1,4 @@
-package com.duster.mqtt.cash
+package com.duster.messagehandler.mqtt.cash
 
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value

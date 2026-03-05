@@ -1,11 +1,12 @@
-package com.duster.mqtt.message
+package com.duster.messagehandler.data
 
 import com.duster.database.data.DeliveryGuarantee
 import com.duster.database.data.DeliveryStatus
 import com.duster.database.data.Message
-import com.duster.mqtt.message.dto.consumer.ConsumerMessageOutDto
-import com.duster.mqtt.message.dto.producer.ProducerMessageInDto
-import com.duster.mqtt.message.dto.producer.ProducerMessageOutDto
+import com.duster.messagehandler.data.dto.consumer.ConsumerMessageOutDto
+import com.duster.messagehandler.data.dto.producer.ProducerDeliveryStatusOutDto
+import com.duster.messagehandler.data.dto.producer.message.ProducerMessageInDto
+import com.duster.messagehandler.data.dto.producer.message.ProducerMessageOutDto
 import org.springframework.stereotype.Component
 import java.util.Date
 
@@ -60,5 +61,9 @@ class MessageConverter {
 
     fun getProducerMessageOutDto(message: Message): ProducerMessageOutDto {
         return ProducerMessageOutDto(message.id, message.tmpId!!, message.deliveryStatus)
+    }
+
+    fun getProducerDeliveryStatusOutDto(message: Message): ProducerDeliveryStatusOutDto {
+        return ProducerDeliveryStatusOutDto(message.deliveryStatus)
     }
 }

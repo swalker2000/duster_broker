@@ -1,7 +1,7 @@
-package com.duster.mqtt.message.dto.consumer
+package com.duster.messagehandler.data.dto.consumer
 
 import com.duster.database.data.DeliveryGuarantee
-import com.duster.mqtt.message.dto.MessageOutDto
+import com.duster.messagehandler.data.dto.OutDto
 
 /**
  * Сообщение отправляемое от брокера consumer.
@@ -10,7 +10,7 @@ import com.duster.mqtt.message.dto.MessageOutDto
 class ConsumerMessageOutDto(
     var id: Long = 0,
 
-) : MessageOutDto {
+) : OutDto {
     /**
      * Текущий таймстамп, чтобы устройства могли синхронизировать по нему время.
      */

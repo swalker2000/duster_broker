@@ -1,15 +1,10 @@
-package com.duster.mqtt
+package com.duster.messagehandler.mqtt
 
 import com.duster.database.MainRepository
 import com.duster.database.data.DeliveryStatus
 import com.duster.database.data.Message
-import com.duster.mqtt.message.MessageConverter
-import com.duster.mqtt.publisher.ConsumerMessagePublisher
-import com.duster.mqtt.publisher.ProducerMessagePublisher
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
+import com.duster.messagehandler.data.MessageConverter
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.stereotype.Component
 import org.springframework.stereotype.Service
 import java.util.Date
 
@@ -28,7 +23,7 @@ class MessageStatusChange {
     private lateinit var mainRepository: MainRepository
 
     @Autowired
-    private lateinit var producerMessagePublisher: ProducerMessagePublisher
+    private lateinit var producerMessagePublisher: com.duster.messagehandler.mqtt.publisher.ProducerMessagePublisher
 
     /**
      * Обновить статус доставки сообщения.

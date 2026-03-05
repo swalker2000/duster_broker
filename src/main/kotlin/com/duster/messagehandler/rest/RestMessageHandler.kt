@@ -1,0 +1,40 @@
+package com.duster.messagehandler.rest
+
+import com.duster.messagehandler.CommonMessageService
+import com.duster.messagehandler.data.dto.consumer.ConsumerMessageInDto
+import com.duster.messagehandler.data.dto.producer.message.ProducerMessageInDto
+import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.PutMapping
+import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RestController
+
+@RestController
+class RestMessageHandler {
+
+    private val logger = LoggerFactory.getLogger(RestMessageHandler::class.java)
+
+    @Autowired
+    private lateinit var commonMessageService: CommonMessageService
+
+    @PutMapping("/producer/request/{deviceId}")
+    fun newProducerMessageIn(
+        @PathVariable deviceId: String,               // deviceId из URL
+        @RequestBody  producerMessageIn: ProducerMessageInDto  // JSON в теле
+    ) {
+            logger.info("newProducerMessageIn [$deviceId]")
+            commonMessageService.newProducerMessageIn(producerMessageIn, deviceId)
+    }
+
+
+    @PutMapping("/consumer/request/{deviceId}")
+    fun newConsumerMessageIn(
+        @PathVariable deviceId: String,               // deviceId из URL
+        @RequestBody  consumerMessageInDto: ConsumerMessageInDto  // JSON в теле
+    ) {
+        logger.info("newConsumerMessageIn [$deviceId]")
+        commonMessageService.newConsumerMessageIn(consumerMessageInDto)
+    }
+
+}

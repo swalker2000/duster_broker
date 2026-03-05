@@ -1,4 +1,4 @@
-package com.duster.mqtt.config
+package com.duster.messagehandler.mqtt.config
 
 import java.security.cert.X509Certificate
 import javax.net.ssl.X509TrustManager

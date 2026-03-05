@@ -1,4 +1,4 @@
-package com.duster.mqtt
+package com.duster.messagehandler.mqtt
 
 /**
  * Источник от которого пришло сообщение.

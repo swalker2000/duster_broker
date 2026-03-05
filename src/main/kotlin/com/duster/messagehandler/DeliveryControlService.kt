@@ -1,25 +1,19 @@
-package com.duster.mqtt
+package com.duster.messagehandler
 
 import com.duster.database.MainRepository
 import com.duster.database.data.DeliveryStatus
 import com.duster.database.data.Message
-import com.duster.mqtt.cash.MessageSendTimeCash
-
-import com.duster.mqtt.message.MessageConverter
-import com.duster.mqtt.publisher.ConsumerMessagePublisher
+import com.duster.messagehandler.data.MessageConverter
+import com.duster.messagehandler.mqtt.cash.MessageSendTimeCash
+import com.duster.messagehandler.mqtt.publisher.ConsumerMessagePublisher
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.beans.factory.annotation.Value
-import org.springframework.messaging.MessageChannel
-import org.springframework.messaging.support.MessageBuilder
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
-import reactor.core.publisher.Mono.delay
-import java.time.Duration
 import java.util.Date
 import kotlin.time.Duration.Companion.milliseconds
 
@@ -65,7 +59,7 @@ class DeliveryControlService {
     @Scheduled(fixedDelayString = "\${common.checkNotDeliveredTimeout}")
     fun checkAndSend() {
         logger.info("Run checkAndSend method:")
-        val searchBefore = Date(System.currentTimeMillis()-mqttWaitResponseTimeout)
+        val searchBefore = Date(System.currentTimeMillis() - mqttWaitResponseTimeout)
         //ищем все сообщения, на которые не дождались ответа
         val messageList = mainRepository.findNotDeliveredMessages(searchBefore)
         //группируем по id устройства
@@ -78,10 +72,10 @@ class DeliveryControlService {
             launch {
                 messageList
                     .filter { message -> !message.deliveredError }
-                    .forEach { message -> mainRepository.updateDeliveryError(message.id, true)}
+                    .forEach { message -> mainRepository.updateDeliveryError(message.id, true) }
             }
             //производим доотправку
-            for (group : List<Message> in groupedMessages) {
+            for (group: List<Message> in groupedMessages) {
                 //для каждого id все сообщения собраны в list group
                 launch {
                     //Отправляем все сообщения на устройство с выбранным id
