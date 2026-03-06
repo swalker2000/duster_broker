@@ -8,6 +8,7 @@ import com.duster.messagehandler.data.dto.consumer.ConsumerMessageInDto
 import com.duster.messagehandler.data.dto.consumer.ConsumerMessageOutDto
 import com.duster.messagehandler.data.dto.producer.ProducerDeliveryStatusOutDto
 import com.duster.messagehandler.data.dto.producer.message.ProducerMessageInDto
+import com.duster.messagehandler.data.dto.producer.message.ProducerMessageOutDto
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
@@ -49,7 +50,14 @@ class CommonMessageService {
     private  var sendMessagePeriod: Long = -1L
 
 
-    fun newProducerMessageIn(producerMessageIn : ProducerMessageInDto, deviseId : String)
+    /**
+     * Обработчик события создания нового сообщения от producer к consumer
+     * @return сообщение, содержащее id присвоенное сообщению
+     */
+    fun newProducerMessageIn(
+        producerMessageIn : ProducerMessageInDto,
+        deviseId : String
+    ) : Optional<ProducerMessageOutDto>
     {
         try{
         var message = messageConverter.getMessage(producerMessageIn, deviseId)
@@ -75,9 +83,11 @@ class CommonMessageService {
             if (existsNotDeliveredMessages)
                 logger.warn("   - existsNotDeliveredMessages is true")
         }
+            return Optional.of(messageConverter.getProducerMessageOutDto(message))
     }
     catch (e : Exception) {
         logger.error(e.stackTraceToString())
+        return Optional.empty()
     }
     }
 

@@ -11,6 +11,6 @@ import com.duster.messagehandler.data.dto.OutDto
  */
 class ProducerMessageOutDto(
     var id: Int,
-    var tmpId : Int,
+    var tmpId : Int?,
     var deliveryStatus: DeliveryStatus
 ) : OutDto
