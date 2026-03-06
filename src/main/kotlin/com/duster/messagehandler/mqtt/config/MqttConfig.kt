@@ -47,6 +47,7 @@ class MqttConfig {
         if (password.isNotBlank()) {
             options.password = password.toCharArray()
         }
+        options.isAutomaticReconnect = true
         options.isCleanSession = true
         // ─────────────────────────────── TLS + отключение проверки ───────────────────────────────
         if (brokerUrl.startsWith("ssl://")) {
