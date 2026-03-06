@@ -20,6 +20,10 @@ repositories {
     mavenCentral()
 }
 
+configurations.configureEach {
+    exclude group: 'org.slf4j', module: 'slf4j-reload4j'
+}
+
 dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'org.springframework.boot:spring-boot-starter-web'
@@ -34,8 +38,11 @@ dependencies {
 
 
     testImplementation 'org.springframework.boot:spring-boot-starter-data-jpa-test'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.jetbrains.kotlin:kotlin-test-junit5'
-    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    testImplementation 'org.junit.platform:junit-platform-launcher'
+    testImplementation 'de.fraunhofer.iosb.io.moquette:moquette-broker:0.18.3'
+    testRuntimeOnly 'com.h2database:h2'
 }
 
 kotlin {
@@ -52,4 +59,6 @@ allOpen {
 
 tasks.named('test') {
     useJUnitPlatform()
+    systemProperty 'spring.profiles.active', 'test'
+    systemProperty 'junit.jupiter.extensions.autodetection.enabled', 'true'
 }
