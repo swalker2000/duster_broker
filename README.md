@@ -1,6 +1,4 @@
 # A delivery guarantee service operating over MQTT.
-- enables interaction via both MQTT and REST API (for now, the feature is only available in the dev branch; documentation for it is available via Swagger at http://localhost:8080/swagger-ui.html).<br>
-  For example, a temperature sensor can send readings via REST, while a relay receiving the data will receive it via MQTT.
 - Stores messages like Kafka. Guarantees message delivery even if the device is offline at the time of sending.
   Can guarantee delivery as:
     - ```ONLY_LAST``` - only the last message with a selected command for a given device.
@@ -12,6 +10,8 @@
     - ```DELIVERED``` - the message was delivered.
     - ```COMPLETED``` - the task sent in the message was completed successfully.
     - ```COMPLETED_WITH_ERROR``` - the task sent in the message was not completed or was completed with an error.
+  - Allows interaction via both MQTT and REST API. (currently, this feature is only available in the dev branch, documentation for it is available via swagger at http://localhost:8080/swagger-ui.html).<br>
+    For example, a temperature sensor can send readings via REST, and a relay receiving the data can receive it via MQTT. Or, a device installed in a vehicle, upon entering an area with connectivity, receives a list of missed commands via REST.
 
 ## Service Workflow (message transmission from producer to consumer (consumer ID: {deviceId}))
 
