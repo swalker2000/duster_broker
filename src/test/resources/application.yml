@@ -1,0 +1,20 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:duster-test;DB_CLOSE_DELAY=-1
+    driverClassName: org.h2.Driver
+    username: sa
+    password:
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.H2Dialect
+common:
+  checkNotDeliveredTimeout: ${COMMON_CHECK_NOT_DELIVERED_TIMEOUT:60000}
+  mqttWaitResponseTimeout: ${COMMON_MQTT_WAIT_RESPONSE_TIMEOUT:30000}
+  sendMessagePeriod: ${COMMON_SEND_MESSAGE_PERIOD:2000}
+  consumerTimeout: ${COMMON_CONSUMER_TIMEOUT:2000}
+  messageSendTimeCash:
+    collectorRunPeriod: ${COMMON_MESSAGE_SEND_TIME_CASH_COLLECTOR_RUN_PERIOD:3600000}
+
