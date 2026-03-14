@@ -34,7 +34,7 @@ class ConsumerMqtt(brokerUrl: String, deviseId: String) : Consumer(deviseId) {
         })
     }
 
-    fun connect() {
+    override fun connect() {
         if (!client.isConnected) {
             client.connect(MqttConnectOptions().apply {
                 isCleanSession = true
@@ -46,7 +46,7 @@ class ConsumerMqtt(brokerUrl: String, deviseId: String) : Consumer(deviseId) {
         }
     }
 
-    fun disconnect() {
+    override fun disconnect() {
         runCatching { client.disconnect() }
         runCatching { client.close() }
     }

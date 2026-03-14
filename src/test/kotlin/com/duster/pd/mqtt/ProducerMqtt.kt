@@ -45,7 +45,7 @@ class ProducerMqtt(
         })
     }
 
-    fun connect() {
+    override fun connect() {
         if (!client.isConnected) {
             client.connect(MqttConnectOptions().apply {
                 isCleanSession = true
@@ -57,7 +57,7 @@ class ProducerMqtt(
         }
     }
 
-    fun disconnect() {
+    override fun disconnect() {
         runCatching { client.disconnect() }
         runCatching { client.close() }
     }

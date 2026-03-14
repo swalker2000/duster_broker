@@ -23,4 +23,8 @@ interface Producer {
      * @param onMessageStatusChange подписаться на смену статуса (если передан messageBirthCertificate в message)
      */
     fun publish(message: ProducerMessageInDto, onMessageStatusChange: OnMessageStatusChange? = null)
+
+    fun connect()
+
+    fun disconnect()
 }

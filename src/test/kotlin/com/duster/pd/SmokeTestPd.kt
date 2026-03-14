@@ -20,8 +20,30 @@ import java.util.concurrent.TimeUnit
 @SpringBootTest
 class SmokeTestPd {
 
+    private data class ProducerAndConsumer(val producer: ProducerMqtt, val consumer: ConsumerMqtt)
+
     @Autowired
     private lateinit var env: Environment
+
+    private fun generateMqttProducerAndConsumerForFromProducerToConsumerNoSubscribeTest(): ProducerAndConsumer {
+        val url = brokerUrl()
+        val deviceId = "pd-device-no-sub-${System.currentTimeMillis()}"
+
+        val consumer = ConsumerMqtt(url, deviceId)
+        val producer = ProducerMqtt(url, deviceId)
+        return ProducerAndConsumer(producer, consumer)
+    }
+
+    private fun generateMqttProducerAndConsumerForFromProducerToConsumerWhisSubscribeTest(): ProducerAndConsumer {
+        val url = brokerUrl()
+        val deviceId = "pd-device-with-sub-${System.currentTimeMillis()}"
+
+        val consumer = ConsumerMqtt(url, deviceId)
+        val producer = ProducerMqtt(url, deviceId, producerDeviceId = "0")
+        return ProducerAndConsumer(producer, consumer)
+    }
+
+
 
     private fun brokerUrl(): String {
         assertTrue(env.activeProfiles.contains("test"), "Должен быть активен профиль test")
@@ -30,17 +52,26 @@ class SmokeTestPd {
             ?: throw IllegalStateException("mqtt.broker.url должен быть выставлен тестовым окружением")
     }
 
+    @Test
+    fun test() {
+        val mqttProducerAndConsumerForFromProducerToConsumerNoSubscribeTest = generateMqttProducerAndConsumerForFromProducerToConsumerNoSubscribeTest()
+        fromProducerToConsumerNoSubscribeTest(
+            mqttProducerAndConsumerForFromProducerToConsumerNoSubscribeTest.producer,
+            mqttProducerAndConsumerForFromProducerToConsumerNoSubscribeTest.consumer
+        )
+        val mqttProducerAndConsumerForFromProducerToConsumerWhisSubscribeTest = generateMqttProducerAndConsumerForFromProducerToConsumerWhisSubscribeTest()
+        fromProducerToConsumerWhisSubscribeTest(
+            mqttProducerAndConsumerForFromProducerToConsumerWhisSubscribeTest.producer,
+            mqttProducerAndConsumerForFromProducerToConsumerWhisSubscribeTest.consumer
+        )
+    }
+
     /**
      * Передача данных из producer в consumer без подписки.
      * Producer не передаёт messageBirthCertificate — сервис не шлёт уведомления в producer/response.
      */
-    @Test
-    fun fromProducerToConsumerNoSubscribeTest() {
-        val url = brokerUrl()
-        val deviceId = "pd-device-no-sub-${System.currentTimeMillis()}"
 
-        val consumer = ConsumerMqtt(url, deviceId)
-        val producer = ProducerMqtt(url, deviceId)
+    private fun fromProducerToConsumerNoSubscribeTest(producer: Producer, consumer: Consumer) {
 
         val latchMessage = CountDownLatch(1)
         var receivedMessage: com.duster.messagehandler.data.dto.consumer.ConsumerMessageOutDto? = null
@@ -91,13 +122,9 @@ class SmokeTestPd {
      * 3. Сообщение обработано (producer получил COMPLETED)
      */
     @Test
-    fun fromProducerToConsumerWhisSubscribeTest() {
-        val url = brokerUrl()
-        val deviceId = "pd-device-with-sub-${System.currentTimeMillis()}"
-        val tmpId = 42
+    fun fromProducerToConsumerWhisSubscribeTest(producer: Producer, consumer: Consumer) {
 
-        val consumer = ConsumerMqtt(url, deviceId)
-        val producer = ProducerMqtt(url, deviceId, producerDeviceId = "0")
+        val tmpId = 42
 
         val latchMessage = CountDownLatch(1)
         val latchDelivered = CountDownLatch(1)

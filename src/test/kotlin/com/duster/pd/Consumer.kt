@@ -39,4 +39,8 @@ abstract class Consumer(val deviseId: String) {
      * Отправить ответ брокеру (подтверждение доставки, статус выполнения и т.д.)
      */
     abstract fun sendResponse(response: ConsumerMessageInDto)
+
+    abstract fun connect()
+
+    abstract fun disconnect()
 }
