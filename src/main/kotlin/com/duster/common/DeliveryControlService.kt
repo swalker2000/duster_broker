@@ -46,9 +46,6 @@ class DeliveryControlService {
     private lateinit var mainRepository: MainRepository
 
     @Autowired
-    private lateinit var consumerMessagePublisher: ConsumerMessagePublisher
-
-    @Autowired
     private lateinit var messageSendTimeCash: MessageSendTimeCash
 
 
@@ -101,7 +98,7 @@ class DeliveryControlService {
             //:TODO убрать костыльную блокировку умножением времени на 2
             //:TODO подумать нужна ли здесь блокировка
             messageSendTimeCash.updateForDevise(message.deviseId, sendMessagePeriod*2)
-            consumerMessagePublisher.publishMessageToConsumer(consumerMessageOutDto, message.deviseId)
+            CommonPublisher.publishMessageToConsumer(message.deviseId, consumerMessageOutDto, )
             delay(sendMessagePeriod.milliseconds)
             val isDeliveredOptional  = mainRepository.findDeliveredById(message.id)
             //если такого сообщения в базе нет, то это какая, то злая ошибка, пишем в лог

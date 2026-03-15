@@ -1,7 +1,5 @@
 package com.duster.common
 
-import com.duster.common.messagepublishinterface.ConsumerMessagePublishAction
-import com.duster.common.messagepublishinterface.ProducerMessagePublishAction
 import com.duster.database.MainRepository
 import com.duster.database.data.DeliveryGuarantee
 import com.duster.database.data.DeliveryStatus
@@ -52,29 +50,7 @@ class CommonMessageService {
     @Value("\${common.sendMessagePeriod}")
     private  var sendMessagePeriod: Long = -1L
 
-    private val consumerMessagePublishActionList = mutableListOf<ConsumerMessagePublishAction>()
-
-
-    /**
-     * Здесь подписываемся на события класса.
-     */
-    inner class Subscribe {
-
-        fun addConsumerMessagePublishAction(consumerMessagePublishAction: ConsumerMessagePublishAction) {
-            consumerMessagePublishActionList.add(consumerMessagePublishAction)
-        }
-        fun addProducerMessagePublishAction(producerMessagePublishAction: ProducerMessagePublishAction) {
-            messageStatusChangeHandler.subscribe.addProducerMessagePublishAction(producerMessagePublishAction)
-        }
-    }
-
-    /**
-     * Здесь подписываемся на события класса.
-     */
-    val subscribe = Subscribe()
-
-
-
+val publisher = CommonPublisher
 
     /**
      * Обработчик события создания нового сообщения от producer к consumer
@@ -98,7 +74,7 @@ class CommonMessageService {
         val messageSendTimeCashAvailable =
             messageSendTimeCash.updateForDeviseIfAvailable(deviseId, sendMessagePeriod)
         if (messageSendTimeCashAvailable && !existsNotDeliveredMessages) {
-            publishMessageToConsumerAction(deviseId, consumerMessageOutDto)
+            CommonPublisher.publishMessageToConsumer(deviseId, consumerMessageOutDto)
             //если гарантия доставки отсутсвует, проставляем метку, что сообщение доставлено
             if (message.deliveryGuarantee == DeliveryGuarantee.NO)
                 mainRepository.updateDeliveryStatus(message.id, DeliveryStatus.UNKNOWN,
@@ -144,17 +120,5 @@ class CommonMessageService {
     {
         return mainRepository.findDeliveredById(messageId)
             .map { ProducerDeliveryStatusOutDto(it) }
-    }
-
-    private fun publishMessageToConsumerAction(deviseId: String, consumerMessageOutDto: ConsumerMessageOutDto)
-    {
-        consumerMessagePublishActionList.forEach {
-            try {
-                it.publishAction(deviseId, consumerMessageOutDto)
-            }
-            catch (e : Exception) {
-                logger.error("Error in publishAction: ${e.stackTraceToString()}")
-            }
-        }
     }
 }

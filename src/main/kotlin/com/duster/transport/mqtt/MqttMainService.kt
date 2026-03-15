@@ -59,10 +59,10 @@ class MqttMainService() {
     private fun postConstruct() {
         //:todo подумать о реактивном стеке и переносе этого в consumerMessagePublisher
         //информируем commonMessageService о том как отправлять сообщения по MQTT
-        commonMessageService.subscribe.addConsumerMessagePublishAction{deviseId, consumerMessageOutDto ->
+        commonMessageService.publisher.addConsumerMessagePublishAction{deviseId, consumerMessageOutDto ->
             consumerMessagePublisher.publishMessageToConsumer(consumerMessageOutDto, deviseId)
         }
-        commonMessageService.subscribe.addProducerMessagePublishAction{deviseId, producerMessageOutDto ->
+        commonMessageService.publisher.addProducerMessagePublishAction{deviseId, producerMessageOutDto ->
             producerMessagePublisher.publishMessageToProducer(producerMessageOutDto, deviseId)
         }
     }

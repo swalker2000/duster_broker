@@ -1,13 +1,10 @@
 package com.duster.common
 
-import com.duster.common.messagepublishinterface.ConsumerMessagePublishAction
 import com.duster.common.messagepublishinterface.ProducerMessagePublishAction
 import com.duster.database.MainRepository
 import com.duster.database.data.DeliveryStatus
 import com.duster.database.data.Message
 import com.duster.transport.data.MessageConverter
-import com.duster.transport.data.dto.producer.message.ProducerMessageOutDto
-import com.duster.transport.mqtt.publisher.ProducerMessagePublisher
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
@@ -69,22 +66,12 @@ class MessageStatusChangeHandler {
     {
         if(message.isProducerSubscribed()) {
             val getProducerMessageOutDto = messageConverter.getProducerMessageOutDto(message)
-            publishMessageToProducerAction(message.producerDeviseId!!, getProducerMessageOutDto)
+            CommonPublisher.publishMessageToProducer(message.producerDeviseId!!, getProducerMessageOutDto)
             //producerMessagePublisher.publishMessageToProducer(getProducerMessageOutDto, message.producerDeviseId!!)
         }
     }
 
 
 
-    private fun publishMessageToProducerAction(deviseId: String, producerMessagePublishAction: ProducerMessageOutDto)
-    {
-        producerMessagePublishActionList.forEach {
-            try {
-                it.publishAction(deviseId, producerMessagePublishAction)
-            }
-            catch (e : Exception) {
-                logger.error("Error in publishAction: ${e.stackTraceToString()}")
-            }
-        }
-    }
+
 }
