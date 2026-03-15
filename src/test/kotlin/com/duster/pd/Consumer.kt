@@ -1,7 +1,7 @@
 package com.duster.pd
 
-import com.duster.messagehandler.data.dto.consumer.ConsumerMessageInDto
-import com.duster.messagehandler.data.dto.consumer.ConsumerMessageOutDto
+import com.duster.transport.data.dto.consumer.ConsumerMessageInDto
+import com.duster.transport.data.dto.consumer.ConsumerMessageOutDto
 import org.slf4j.LoggerFactory
 
 abstract class Consumer(val deviseId: String) {

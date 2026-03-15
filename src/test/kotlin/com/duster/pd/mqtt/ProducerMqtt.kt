@@ -1,8 +1,8 @@
 package com.duster.pd.mqtt
 
 import com.duster.database.data.DeliveryStatus
-import com.duster.messagehandler.data.dto.producer.message.ProducerMessageInDto
-import com.duster.messagehandler.data.dto.producer.message.ProducerMessageOutDto
+import com.duster.transport.data.dto.producer.message.ProducerMessageInDto
+import com.duster.transport.data.dto.producer.message.ProducerMessageOutDto
 import com.duster.pd.Producer
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken

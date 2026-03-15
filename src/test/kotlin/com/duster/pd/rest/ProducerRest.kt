@@ -1,6 +1,6 @@
 package com.duster.pd.rest
 
-import com.duster.messagehandler.data.dto.producer.message.ProducerMessageInDto
+import com.duster.transport.data.dto.producer.message.ProducerMessageInDto
 import com.duster.pd.Producer
 
 class ProducerRest (
