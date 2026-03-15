@@ -5,11 +5,13 @@ import com.duster.database.data.DeliveryStatus
 import com.duster.messagehandler.data.dto.consumer.ConsumerMessageInDto
 import com.duster.messagehandler.data.dto.producer.message.MessageBirthCertificate
 import com.duster.messagehandler.data.dto.producer.message.ProducerMessageInDto
+import com.duster.messagehandler.mqtt.MqttMessageHandler
 import com.duster.pd.mqtt.ConsumerMqtt
 import com.duster.pd.mqtt.ProducerMqtt
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertTrue
+import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.core.env.Environment
@@ -20,7 +22,12 @@ import java.util.concurrent.TimeUnit
 @SpringBootTest
 class SmokeTestPd {
 
-    private data class ProducerAndConsumer(val producer: ProducerMqtt, val consumer: ConsumerMqtt)
+    private val logger = LoggerFactory.getLogger(SmokeTestPd::class.java)
+
+    private data class ProducerAndConsumer(
+        val producer: ProducerMqtt,
+        val consumer: ConsumerMqtt
+    )
 
     @Autowired
     private lateinit var env: Environment
@@ -39,7 +46,7 @@ class SmokeTestPd {
         val deviceId = "pd-device-with-sub-${System.currentTimeMillis()}"
 
         val consumer = ConsumerMqtt(url, deviceId)
-        val producer = ProducerMqtt(url, deviceId, producerDeviceId = "0")
+        val producer = ProducerMqtt(url,  deviceId = "0")
         return ProducerAndConsumer(producer, consumer)
     }
 
@@ -54,11 +61,13 @@ class SmokeTestPd {
 
     @Test
     fun test() {
+        logger.info("fromProducerToConsumerNoSubscribeTest")
         val mqttProducerAndConsumerForFromProducerToConsumerNoSubscribeTest = generateMqttProducerAndConsumerForFromProducerToConsumerNoSubscribeTest()
         fromProducerToConsumerNoSubscribeTest(
             mqttProducerAndConsumerForFromProducerToConsumerNoSubscribeTest.producer,
             mqttProducerAndConsumerForFromProducerToConsumerNoSubscribeTest.consumer
         )
+        logger.info("mqttProducerAndConsumerForFromProducerToConsumerWhisSubscribeTest")
         val mqttProducerAndConsumerForFromProducerToConsumerWhisSubscribeTest = generateMqttProducerAndConsumerForFromProducerToConsumerWhisSubscribeTest()
         fromProducerToConsumerWhisSubscribeTest(
             mqttProducerAndConsumerForFromProducerToConsumerWhisSubscribeTest.producer,
@@ -92,7 +101,7 @@ class SmokeTestPd {
                 data = mapOf("pinNumber" to 13, "pinValue" to true)
             }
 
-            producer.publish(message, null)
+            producer.publish(consumer.deviseId, message, null)
 
             assertTrue(
                 latchMessage.await(10, TimeUnit.SECONDS),
@@ -121,7 +130,6 @@ class SmokeTestPd {
      * 2. Сообщение доставлено (producer получил DELIVERED)
      * 3. Сообщение обработано (producer получил COMPLETED)
      */
-    @Test
     fun fromProducerToConsumerWhisSubscribeTest(producer: Producer, consumer: Consumer) {
 
         val tmpId = 42
@@ -148,7 +156,7 @@ class SmokeTestPd {
                 data = mapOf("pinNumber" to 13, "pinValue" to true)
             }
 
-            producer.publish(message, object : Producer.OnMessageStatusChange {
+            producer.publish(consumer.deviseId, message, object : Producer.OnMessageStatusChange {
                 override fun newStatusEvent(dto: com.duster.messagehandler.data.dto.producer.message.ProducerMessageOutDto) {
                     when (dto.deliveryStatus) {
                         DeliveryStatus.DELIVERED -> latchDelivered.countDown()

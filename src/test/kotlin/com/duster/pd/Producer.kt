@@ -5,7 +5,7 @@ import com.duster.messagehandler.data.dto.producer.message.ProducerMessageOutDto
 
 interface Producer {
 
-    val deviseId: String
+    val deviceId: String
 
     /**
      * Хендлер описывающий алгоритм действий при смене статуса сообщения.
@@ -20,9 +20,10 @@ interface Producer {
     /**
      * Опубликовать сообщение на consumer.
      * @param message сообщение для отправки (ProducerMessageInDto)
+     * @param consumerDeviseId id устройства куда отправлено сообщение.
      * @param onMessageStatusChange подписаться на смену статуса (если передан messageBirthCertificate в message)
      */
-    fun publish(message: ProducerMessageInDto, onMessageStatusChange: OnMessageStatusChange? = null)
+    fun publish(consumerDeviseId : String, message: ProducerMessageInDto, onMessageStatusChange: OnMessageStatusChange? = null)
 
     fun connect()
 

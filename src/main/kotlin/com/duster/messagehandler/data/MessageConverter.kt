@@ -60,7 +60,7 @@ class MessageConverter {
     }
 
     fun getProducerMessageOutDto(message: Message): ProducerMessageOutDto {
-        return ProducerMessageOutDto(message.id, message.tmpId!!, message.deliveryStatus)
+        return ProducerMessageOutDto(message.id, message.tmpId, message.deliveryStatus)
     }
 
     fun getProducerDeliveryStatusOutDto(message: Message): ProducerDeliveryStatusOutDto {

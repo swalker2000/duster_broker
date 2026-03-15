@@ -5,7 +5,6 @@ import com.duster.messagehandler.data.dto.producer.message.ProducerMessageInDto
 import com.duster.messagehandler.data.dto.producer.message.ProducerMessageOutDto
 import com.duster.pd.Producer
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import com.fasterxml.jackson.module.kotlin.readValue
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken
 import org.eclipse.paho.client.mqttv3.MqttCallback
 import org.eclipse.paho.client.mqttv3.MqttClient
@@ -15,12 +14,11 @@ import java.nio.charset.StandardCharsets
 
 class ProducerMqtt(
     brokerUrl: String,
-    override val deviseId: String,
-    private val producerDeviceId: String = "0"
+    override val deviceId: String = "0"
 ) : Producer {
 
     private val om = jacksonObjectMapper()
-    private val client = MqttClient(brokerUrl, "producer-${deviseId}-${System.currentTimeMillis()}")
+    private val client = MqttClient(brokerUrl, "producer-${deviceId}-${System.currentTimeMillis()}")
 
     private var statusChangeHandler: Producer.OnMessageStatusChange? = null
 
@@ -29,7 +27,7 @@ class ProducerMqtt(
             override fun connectionLost(cause: Throwable?) = Unit
 
             override fun messageArrived(topic: String, message: MqttMessage) {
-                if (topic != "producer/response/$producerDeviceId") return
+                if (topic != "producer/response/$deviceId") return
                 val payload = message.payload.toString(StandardCharsets.UTF_8)
                 runCatching {
                     val json = om.readTree(payload)
@@ -53,7 +51,7 @@ class ProducerMqtt(
                 keepAliveInterval = 5
                 isAutomaticReconnect = true
             })
-            client.subscribe("producer/response/$producerDeviceId", 1)
+            client.subscribe("producer/response/$deviceId", 1)
         }
     }
 
@@ -62,9 +60,9 @@ class ProducerMqtt(
         runCatching { client.close() }
     }
 
-    override fun publish(message: ProducerMessageInDto, onMessageStatusChange: Producer.OnMessageStatusChange?) {
+    override fun publish(consumerDeviseId: String, message: ProducerMessageInDto, onMessageStatusChange: Producer.OnMessageStatusChange?) {
         statusChangeHandler = onMessageStatusChange
-        val topic = "producer/request/$deviseId"
+        val topic = "producer/request/$consumerDeviseId"
         val payload = om.writeValueAsString(message)
         client.publish(topic, payload.toByteArray(StandardCharsets.UTF_8), 1, false)
     }
