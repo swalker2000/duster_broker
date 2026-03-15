@@ -93,4 +93,18 @@ interface MessageRepository: JpaRepository<Message, Int> {
         @Param("id") id: Int,
         @Param("deliveredError") deliveredError: Boolean
     ): Int
+
+    /**
+     * Находит самое старое (с наименьшей датой создания) сообщение для указанного устройства и статуса доставки.
+     *
+     * @param deviseId идентификатор устройства-получателя
+     * @param deliveryStatus статус доставки сообщения
+     * @return Optional с найденным сообщением, или пустой Optional, если сообщение не найдено
+     */
+    fun findFirstByDeviseIdAndDeliveryStatusOrderByCreatedDateAsc(
+        deviseId: String,
+        deliveryStatus: DeliveryStatus
+    ): Optional<Message>
+
+
 }

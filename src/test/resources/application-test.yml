@@ -1,0 +1,22 @@
+mqtt:
+  broker:
+    # В тестах используем фиксированный порт, чтобы Spring успел взять значение ДО старта контекста.
+    # Брокер поднимается автоматически тестовым окружением.
+    url: ${MQTT_BROKER_URL:tcp://127.0.0.1:18884}
+    username: ${MQTT_BROKER_USERNAME:}
+    password: ${MQTT_BROKER_PASSWORD:}
+  ssl:
+    insecure: true
+  qos: 1
+
+spring:
+  datasource:
+    url: jdbc:h2:mem:duster;DB_CLOSE_DELAY=-1;DATABASE_TO_UPPER=false
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: create-drop
+
