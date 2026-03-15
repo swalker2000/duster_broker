@@ -1,6 +1,7 @@
 package com.duster.common
 
 import com.duster.common.messagepublishinterface.ConsumerMessagePublishAction
+import com.duster.common.messagepublishinterface.ProducerMessagePublishAction
 import com.duster.database.MainRepository
 import com.duster.database.data.DeliveryGuarantee
 import com.duster.database.data.DeliveryStatus
@@ -53,6 +54,7 @@ class CommonMessageService {
 
     private val consumerMessagePublishActionList = mutableListOf<ConsumerMessagePublishAction>()
 
+
     /**
      * Здесь подписываемся на события класса.
      */
@@ -61,8 +63,14 @@ class CommonMessageService {
         fun addConsumerMessagePublishAction(consumerMessagePublishAction: ConsumerMessagePublishAction) {
             consumerMessagePublishActionList.add(consumerMessagePublishAction)
         }
+        fun addProducerMessagePublishAction(producerMessagePublishAction: ProducerMessagePublishAction) {
+            messageStatusChangeHandler.subscribe.addProducerMessagePublishAction(producerMessagePublishAction)
+        }
     }
 
+    /**
+     * Здесь подписываемся на события класса.
+     */
     val subscribe = Subscribe()
 
 
@@ -149,8 +157,4 @@ class CommonMessageService {
             }
         }
     }
-
-
-
-
 }

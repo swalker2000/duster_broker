@@ -3,6 +3,7 @@ package com.duster.transport.mqtt
 import com.duster.common.CommonMessageService
 import com.duster.transport.data.dto.consumer.ConsumerMessageInDto
 import com.duster.transport.data.dto.producer.message.ProducerMessageInDto
+import com.duster.transport.mqtt.publisher.ProducerMessagePublisher
 import jakarta.annotation.PostConstruct
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -46,6 +47,9 @@ class MqttMainService() {
     private lateinit var consumerMessagePublisher: com.duster.transport.mqtt.publisher.ConsumerMessagePublisher
 
     @Autowired
+    private lateinit var producerMessagePublisher: ProducerMessagePublisher
+
+    @Autowired
     private lateinit var commonMessageService: CommonMessageService
 
     @Autowired
@@ -57,6 +61,9 @@ class MqttMainService() {
         //информируем commonMessageService о том как отправлять сообщения по MQTT
         commonMessageService.subscribe.addConsumerMessagePublishAction{deviseId, consumerMessageOutDto ->
             consumerMessagePublisher.publishMessageToConsumer(consumerMessageOutDto, deviseId)
+        }
+        commonMessageService.subscribe.addProducerMessagePublishAction{deviseId, producerMessageOutDto ->
+            producerMessagePublisher.publishMessageToProducer(producerMessageOutDto, deviseId)
         }
     }
 
