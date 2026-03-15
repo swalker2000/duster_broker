@@ -1,7 +1,7 @@
 package com.duster.pd
 
-import com.duster.transport.data.dto.producer.message.ProducerMessageInDto
-import com.duster.transport.data.dto.producer.message.ProducerMessageOutDto
+import com.duster.messagehandler.data.dto.producer.message.ProducerMessageInDto
+import com.duster.messagehandler.data.dto.producer.message.ProducerMessageOutDto
 
 interface Producer {
 

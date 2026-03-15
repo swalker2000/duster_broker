@@ -1,7 +1,8 @@
 package com.duster.pd.mqtt
 
-import com.duster.transport.data.dto.consumer.ConsumerMessageInDto
-import com.duster.transport.data.dto.consumer.ConsumerMessageOutDto
+import com.duster.database.data.DeliveryGuarantee
+import com.duster.messagehandler.data.dto.consumer.ConsumerMessageInDto
+import com.duster.messagehandler.data.dto.consumer.ConsumerMessageOutDto
 import com.duster.pd.Consumer
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken

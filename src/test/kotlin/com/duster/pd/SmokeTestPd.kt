@@ -2,9 +2,10 @@ package com.duster.pd
 
 import com.duster.database.data.DeliveryGuarantee
 import com.duster.database.data.DeliveryStatus
-import com.duster.transport.data.dto.consumer.ConsumerMessageInDto
-import com.duster.transport.data.dto.producer.message.MessageBirthCertificate
-import com.duster.transport.data.dto.producer.message.ProducerMessageInDto
+import com.duster.messagehandler.data.dto.consumer.ConsumerMessageInDto
+import com.duster.messagehandler.data.dto.producer.message.MessageBirthCertificate
+import com.duster.messagehandler.data.dto.producer.message.ProducerMessageInDto
+import com.duster.messagehandler.mqtt.MqttMessageHandler
 import com.duster.pd.mqtt.ConsumerMqtt
 import com.duster.pd.mqtt.ProducerMqtt
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -82,7 +83,7 @@ class SmokeTestPd {
     private fun fromProducerToConsumerNoSubscribeTest(producer: Producer, consumer: Consumer) {
 
         val latchMessage = CountDownLatch(1)
-        var receivedMessage: com.duster.transport.data.dto.consumer.ConsumerMessageOutDto? = null
+        var receivedMessage: com.duster.messagehandler.data.dto.consumer.ConsumerMessageOutDto? = null
 
         consumer.subscribeNewMessage { msg ->
             receivedMessage = msg
@@ -136,7 +137,7 @@ class SmokeTestPd {
         val latchMessage = CountDownLatch(1)
         val latchDelivered = CountDownLatch(1)
         val latchCompleted = CountDownLatch(1)
-        var receivedMessage: com.duster.transport.data.dto.consumer.ConsumerMessageOutDto? = null
+        var receivedMessage: com.duster.messagehandler.data.dto.consumer.ConsumerMessageOutDto? = null
 
         consumer.subscribeNewMessage { msg ->
             receivedMessage = msg
@@ -156,7 +157,7 @@ class SmokeTestPd {
             }
 
             producer.publish(consumer.deviseId, message, object : Producer.OnMessageStatusChange {
-                override fun newStatusEvent(dto: com.duster.transport.data.dto.producer.message.ProducerMessageOutDto) {
+                override fun newStatusEvent(dto: com.duster.messagehandler.data.dto.producer.message.ProducerMessageOutDto) {
                     when (dto.deliveryStatus) {
                         DeliveryStatus.DELIVERED -> latchDelivered.countDown()
                         DeliveryStatus.COMPLETED -> latchCompleted.countDown()
