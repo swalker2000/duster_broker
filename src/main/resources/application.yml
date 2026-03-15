@@ -6,6 +6,8 @@ mqtt:
   ssl:
     insecure: ${MQTT_SSL_INSECURE:false}
   qos: ${MQTT_QOS:1}  # Опционально, QoS по умолчанию
+server:
+  address: ${REST_SERVER_ADDRESS:127.0.0.1}
 
 common:
   checkNotDeliveredTimeout: ${COMMON_CHECK_NOT_DELIVERED_TIMEOUT:60000}

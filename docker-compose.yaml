@@ -25,12 +25,16 @@ services:
       MQTT_SSL_INSECURE: "true"
       MQTT_QOS: "1"
 
+      # --- Rest ---
+      REST_SERVER_ADDRESS: "127.0.0.1"
+
       # --- Common ---
       COMMON_CHECK_NOT_DELIVERED_TIMEOUT: "60000"
       COMMON_MQTT_WAIT_RESPONSE_TIMEOUT: "30000"
       COMMON_SEND_MESSAGE_PERIOD: "2000"
       COMMON_CONSUMER_TIMEOUT: "2000"
       COMMON_MESSAGE_SEND_TIME_CASH_COLLECTOR_RUN_PERIOD: "3600000"
+
     #ports:
     #  - "8080:8080"
     restart: unless-stopped
