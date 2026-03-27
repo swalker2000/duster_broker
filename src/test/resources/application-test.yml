@@ -20,3 +20,9 @@ spring:
     hibernate:
       ddl-auto: create-drop
 
+app:
+  jwt:
+    secret: test-jwt-secret-must-be-at-least-32-bytes-long!!
+    expiration-ms: 3600000
+  security:
+    permit-all: true

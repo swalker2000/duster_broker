@@ -1,5 +1,6 @@
 package com.duster.database.data.client
 
+import com.fasterxml.jackson.annotation.JsonProperty
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.GeneratedValue
@@ -28,6 +29,7 @@ class Client {
     /**
      * Пароль или хеш пароля по которому устройство авторизуется.
      */
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     @Column(nullable = false)
     var password : String = ""
 

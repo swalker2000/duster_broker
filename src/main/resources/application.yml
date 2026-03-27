@@ -18,6 +18,9 @@ common:
     collectorRunPeriod: ${COMMON_MESSAGE_SEND_TIME_CASH_COLLECTOR_RUN_PERIOD:3600000}
 
 spring:
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.security.servlet.UserDetailsServiceAutoConfiguration
   datasource:
     url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/duster}
     username: ${SPRING_DATASOURCE_USERNAME:postgres}
@@ -26,3 +29,11 @@ spring:
     database-platform: ${SPRING_JPA_DATABASE_PLATFORM:org.hibernate.dialect.PostgreSQLDialect}
     hibernate:
       ddl-auto: ${SPRING_JPA_HIBERNATE_DDL_AUTO:create}
+
+# Для HS256 секрет должен быть ≥ 256 бит (32+ байта в UTF-8). В проде задайте JWT_SECRET.
+app:
+  jwt:
+    secret: ${JWT_SECRET:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef}
+    expiration-ms: ${JWT_EXPIRATION_MS:86400000}
+  security:
+    permit-all: ${APP_SECURITY_PERMIT_ALL:false}

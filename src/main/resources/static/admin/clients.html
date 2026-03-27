@@ -81,7 +81,9 @@
 <body>
 <header>
     <h1>Клиенты (устройства и пользователи)</h1>
-    <p>CRUD для сущности <code>Client</code> — REST: <code>/admin/api/clients</code></p>
+    <p>CRUD для сущности <code>Client</code> — REST: <code>/admin/api/clients</code> (JWT, роль MAN)</p>
+    <p id="user-line" style="margin-top:0.75rem;font-size:0.875rem;color:var(--muted);"></p>
+    <button type="button" class="secondary" id="logout-btn" style="margin-top:0.5rem;">Выйти</button>
 </header>
 <main>
     <div id="flash" class="msg" role="alert"></div>
@@ -97,7 +99,7 @@
                 </div>
                 <div>
                     <label for="password">Пароль</label>
-                    <input id="password" type="password" required autocomplete="new-password" placeholder="пароль или хеш">
+                    <input id="password" type="password" required autocomplete="new-password" placeholder="при создании обязателен; при правке — пусто = не менять">
                 </div>
             </div>
             <div class="row">
@@ -142,6 +144,7 @@
 </main>
 
 <script>
+    const TOKEN_KEY = 'dusterAdminJwt';
     const API = '/admin/api/clients';
     const tbody = document.getElementById('tbody');
     const flash = document.getElementById('flash');
@@ -150,6 +153,54 @@
     const formTitle = document.getElementById('form-title');
     const submitBtn = document.getElementById('submit-btn');
     const emptyHint = document.getElementById('empty-hint');
+    const userLine = document.getElementById('user-line');
+
+    function getToken() {
+        return sessionStorage.getItem(TOKEN_KEY);
+    }
+
+    function authHeaders() {
+        const t = getToken();
+        const h = { 'Content-Type': 'application/json' };
+        if (t) h['Authorization'] = 'Bearer ' + t;
+        return h;
+    }
+
+    async function apiFetch(url, options) {
+        const opts = options || {};
+        const headers = new Headers(opts.headers || {});
+        const t = getToken();
+        if (t) headers.set('Authorization', 'Bearer ' + t);
+        return fetch(url, Object.assign({}, opts, { headers: headers }));
+    }
+
+    function redirectToLogin(reason) {
+        sessionStorage.removeItem(TOKEN_KEY);
+        const q = reason ? ('?reason=' + encodeURIComponent(reason)) : '';
+        location.href = '/admin/login.html' + q;
+    }
+
+    async function ensureManSession() {
+        const t = getToken();
+        if (!t) {
+            redirectToLogin();
+            return false;
+        }
+        const r = await fetch('/auth/me', { headers: { 'Authorization': 'Bearer ' + t } });
+        if (!r.ok) {
+            redirectToLogin();
+            return false;
+        }
+        const me = await r.json();
+        if (me.role !== 'MAN') {
+            redirectToLogin('forbidden');
+            return false;
+        }
+        userLine.textContent = 'Вы вошли как ' + me.deviseId + ' (MAN)';
+        return true;
+    }
+
+    document.getElementById('logout-btn').addEventListener('click', () => redirectToLogin());
 
     function showFlash(text, ok) {
         flash.textContent = text;
@@ -158,7 +209,11 @@
     }
 
     async function loadList() {
-        const r = await fetch(API);
+        const r = await apiFetch(API);
+        if (r.status === 401 || r.status === 403) {
+            redirectToLogin(r.status === 403 ? 'forbidden' : '');
+            return;
+        }
         if (!r.ok) {
             showFlash('Ошибка загрузки: ' + r.status, false);
             return;
@@ -196,7 +251,7 @@
         if (!c) return;
         editId.value = String(c.id);
         document.getElementById('deviseId').value = c.deviseId;
-        document.getElementById('password').value = c.password;
+        document.getElementById('password').value = '';
         document.getElementById('password').required = false;
         document.getElementById('role').value = c.role;
         document.getElementById('description').value = c.description;
@@ -218,27 +273,37 @@
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
         const id = editId.value;
+        const pwd = document.getElementById('password').value;
+        if (!id && !pwd) {
+            showFlash('Укажите пароль для нового клиента', false);
+            return;
+        }
         const body = {
             deviseId: document.getElementById('deviseId').value.trim(),
-            password: document.getElementById('password').value,
+            password: pwd,
             role: document.getElementById('role').value,
             description: document.getElementById('description').value.trim()
         };
         const opts = {
-            headers: { 'Content-Type': 'application/json' },
+            headers: authHeaders(),
             body: JSON.stringify(body)
         };
         let r;
         if (id) {
-            r = await fetch(API + '/' + id, { method: 'PUT', ...opts });
+            r = await apiFetch(API + '/' + id, { method: 'PUT', ...opts });
         } else {
-            r = await fetch(API, { method: 'POST', ...opts });
+            r = await apiFetch(API, { method: 'POST', ...opts });
+        }
+        if (r.status === 401 || r.status === 403) {
+            redirectToLogin(r.status === 403 ? 'forbidden' : '');
+            return;
         }
         if (!r.ok) {
             let msg = r.status + ' ' + r.statusText;
             try {
                 const err = await r.json();
                 if (err.message) msg = err.message;
+                else if (err.error) msg = err.error;
             } catch (_) {}
             showFlash(msg, false);
             return;
@@ -250,7 +315,11 @@
 
     async function removeClient(id) {
         if (!confirm('Удалить клиента #' + id + '?')) return;
-        const r = await fetch(API + '/' + id, { method: 'DELETE' });
+        const r = await apiFetch(API + '/' + id, { method: 'DELETE' });
+        if (r.status === 401 || r.status === 403) {
+            redirectToLogin(r.status === 403 ? 'forbidden' : '');
+            return;
+        }
         if (!r.ok && r.status !== 204) {
             showFlash('Удаление не удалось: ' + r.status, false);
             return;
@@ -259,7 +328,10 @@
         await loadList();
     }
 
-    loadList();
+    (async function init() {
+        if (!(await ensureManSession())) return;
+        await loadList();
+    })();
 </script>
 </body>
 </html>

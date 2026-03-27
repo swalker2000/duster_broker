@@ -7,5 +7,5 @@ import org.springframework.web.bind.annotation.GetMapping
 class AdminWebController {
 
     @GetMapping("/admin")
-    fun adminHome(): String = "redirect:/admin/clients.html"
+    fun adminHome(): String = "redirect:/admin/login.html"
 }

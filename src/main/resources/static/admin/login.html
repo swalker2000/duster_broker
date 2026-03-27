@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Вход — админ</title>
+    <style>
+        :root {
+            --bg: #0f1419;
+            --surface: #1a2332;
+            --border: #2d3a4d;
+            --text: #e7ecf3;
+            --muted: #8b9cb3;
+            --accent: #3d8bfd;
+            --danger: #e85d5d;
+        }
+        * { box-sizing: border-box; }
+        body {
+            font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 1.5rem;
+            width: 100%;
+            max-width: 400px;
+        }
+        h1 { margin: 0 0 0.5rem; font-size: 1.25rem; font-weight: 600; }
+        p { margin: 0 0 1.25rem; color: var(--muted); font-size: 0.875rem; line-height: 1.5; }
+        label { display: block; font-size: 0.8rem; color: var(--muted); margin-bottom: 0.25rem; }
+        input {
+            width: 100%;
+            padding: 0.5rem 0.65rem;
+            border-radius: 6px;
+            border: 1px solid var(--border);
+            background: var(--bg);
+            color: var(--text);
+            margin-bottom: 0.75rem;
+        }
+        button {
+            width: 100%;
+            padding: 0.6rem 1rem;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            font-weight: 500;
+            background: var(--accent);
+            color: #fff;
+            font-size: 0.9rem;
+        }
+        button:disabled { opacity: 0.5; cursor: not-allowed; }
+        .msg { display: none; padding: 0.75rem; border-radius: 6px; margin-bottom: 1rem; font-size: 0.875rem; }
+        .msg.err { display: block; background: rgba(232, 93, 93, 0.15); border: 1px solid var(--danger); }
+    </style>
+</head>
+<body>
+<div class="card">
+    <h1>Вход в админку</h1>
+    <p>Доступ к управлению клиентами только для роли <strong>MAN</strong>. Токен нужен и для вызовов REST.</p>
+    <div id="flash" class="msg err" role="alert"></div>
+    <form id="login-form">
+        <label for="deviseId">deviseId</label>
+        <input id="deviseId" name="deviseId" required autocomplete="username" placeholder="логин клиента">
+        <label for="password">Пароль</label>
+        <input id="password" name="password" type="password" required autocomplete="current-password">
+        <button type="submit" id="submit">Войти</button>
+    </form>
+</div>
+<script>
+    const TOKEN_KEY = 'dusterAdminJwt';
+    const flash = document.getElementById('flash');
+    const params = new URLSearchParams(location.search);
+    if (params.get('reason') === 'forbidden') {
+        flash.style.display = 'block';
+        flash.textContent = 'Веб-интерфейс доступен только пользователям с ролью MAN.';
+    }
+
+    (async function checkExisting() {
+        const t = sessionStorage.getItem(TOKEN_KEY);
+        if (!t) return;
+        const r = await fetch('/auth/me', { headers: { 'Authorization': 'Bearer ' + t } });
+        if (!r.ok) {
+            sessionStorage.removeItem(TOKEN_KEY);
+            return;
+        }
+        const me = await r.json();
+        if (me.role === 'MAN') {
+            location.replace('/admin/clients.html');
+        } else {
+            sessionStorage.removeItem(TOKEN_KEY);
+        }
+    })();
+
+    document.getElementById('login-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        flash.style.display = 'none';
+        const deviseId = document.getElementById('deviseId').value.trim();
+        const password = document.getElementById('password').value;
+        const btn = document.getElementById('submit');
+        btn.disabled = true;
+        try {
+            const r = await fetch('/auth/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ deviseId, password })
+            });
+            const data = await r.json().catch(() => ({}));
+            if (!r.ok) {
+                flash.style.display = 'block';
+                flash.textContent = data.message || ('Ошибка: ' + r.status);
+                return;
+            }
+            if (data.role !== 'MAN') {
+                flash.style.display = 'block';
+                flash.textContent = 'Вход в веб-интерфейс разрешён только роли MAN. Для REST используйте POST /auth/login и заголовок Authorization.';
+                return;
+            }
+            sessionStorage.setItem(TOKEN_KEY, data.accessToken);
+            location.href = '/admin/clients.html';
+        } finally {
+            btn.disabled = false;
+        }
+    });
+</script>
+</body>
+</html>

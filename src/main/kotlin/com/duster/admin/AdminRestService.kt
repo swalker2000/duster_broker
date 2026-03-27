@@ -2,7 +2,9 @@ package com.duster.admin
 
 import com.duster.database.ClientRepository
 import com.duster.database.data.client.Client
+import com.duster.security.ClientPasswords
 import org.springframework.http.HttpStatus
+import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
@@ -17,7 +19,8 @@ import org.springframework.web.server.ResponseStatusException
 @RestController
 @RequestMapping("/admin/api/clients")
 class AdminRestService(
-    private val clientRepository: ClientRepository
+    private val clientRepository: ClientRepository,
+    private val passwordEncoder: PasswordEncoder
 ) {
 
     @GetMapping
@@ -37,7 +40,11 @@ class AdminRestService(
         if (clientRepository.existsByDeviseId(client.deviseId)) {
             throw ResponseStatusException(HttpStatus.CONFLICT, "deviseId already exists: ${client.deviseId}")
         }
+        if (client.password.isBlank()) {
+            throw ResponseStatusException(HttpStatus.BAD_REQUEST, "password is required")
+        }
         client.id = 0
+        client.password = encodeForStore(client.password)
         val saved = clientRepository.save(client)
         return ResponseEntity.status(HttpStatus.CREATED).body(saved)
     }
@@ -54,7 +61,7 @@ class AdminRestService(
             throw ResponseStatusException(HttpStatus.CONFLICT, "deviseId already exists: ${body.deviseId}")
         }
         existing.deviseId = body.deviseId
-        existing.password = body.password
+        existing.password = encodeForUpdate(body.password, existing.password)
         existing.role = body.role
         existing.description = body.description
         return clientRepository.save(existing)
@@ -67,5 +74,13 @@ class AdminRestService(
         }
         clientRepository.deleteById(id)
         return ResponseEntity.noContent().build()
+    }
+
+    private fun encodeForStore(raw: String): String =
+        if (ClientPasswords.looksLikeBcrypt(raw)) raw else passwordEncoder.encode(raw)!!
+
+    private fun encodeForUpdate(raw: String, current: String): String {
+        if (raw.isBlank()) return current
+        return if (ClientPasswords.looksLikeBcrypt(raw)) raw else passwordEncoder.encode(raw)!!
     }
 }
