@@ -7,29 +7,40 @@ import com.duster.transport.data.dto.producer.message.MessageBirthCertificate
 import com.duster.transport.data.dto.producer.message.ProducerMessageInDto
 import com.duster.pd.mqtt.ConsumerMqtt
 import com.duster.pd.mqtt.ProducerMqtt
+import com.duster.pd.rest.ConsumerRest
+import com.duster.pd.rest.ProducerRest
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.boot.test.web.server.LocalServerPort
 import org.springframework.core.env.Environment
 import kotlin.test.Test
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 
-@SpringBootTest
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class SmokeTestPd {
+
+    //TODO: сделать что бы нужно было сделать меньше действий что бы добавить тест.
 
     private val logger = LoggerFactory.getLogger(SmokeTestPd::class.java)
 
     private data class ProducerAndConsumer(
-        val producer: ProducerMqtt,
-        val consumer: ConsumerMqtt
+        val producer: Producer,
+        val consumer: Consumer
     )
 
     @Autowired
     private lateinit var env: Environment
+
+    @LocalServerPort
+    private var restPort: Int = 0
+
+    /** HTTP-база для [ConsumerRest] / [ProducerRest] (не путать с [brokerUrl] — там MQTT `tcp://…`). */
+    private fun restBaseUrl(): String = "http://127.0.0.1:$restPort"
 
     private fun generateMqttProducerAndConsumerForFromProducerToConsumerNoSubscribeTest(): ProducerAndConsumer {
         val url = brokerUrl()
@@ -49,6 +60,24 @@ class SmokeTestPd {
         return ProducerAndConsumer(producer, consumer)
     }
 
+    private fun generateRestProducerAndConsumerForFromProducerToConsumerNoSubscribeTest(): ProducerAndConsumer {
+        val url = restBaseUrl()
+        val deviceId = "pd-rest-no-sub-${System.currentTimeMillis()}"
+
+        val consumer = ConsumerRest(url, deviceId)
+        val producer = ProducerRest(url, deviceId)
+        return ProducerAndConsumer(producer, consumer)
+    }
+
+    private fun generateRestProducerAndConsumerForFromProducerToConsumerWhisSubscribeTest(): ProducerAndConsumer {
+        val url = restBaseUrl()
+        val deviceId = "pd-rest-with-sub-${System.currentTimeMillis()}"
+
+        val consumer = ConsumerRest(url, deviceId)
+        val producer = ProducerRest(url, deviceId = "0")
+        return ProducerAndConsumer(producer, consumer)
+    }
+
 
 
     private fun brokerUrl(): String {
@@ -60,6 +89,7 @@ class SmokeTestPd {
 
     @Test
     fun test() {
+        logger.info("=============MQTT START====================")
         logger.info("fromProducerToConsumerNoSubscribeTest")
         val mqttProducerAndConsumerForFromProducerToConsumerNoSubscribeTest = generateMqttProducerAndConsumerForFromProducerToConsumerNoSubscribeTest()
         fromProducerToConsumerNoSubscribeTest(
@@ -71,6 +101,20 @@ class SmokeTestPd {
         fromProducerToConsumerWhisSubscribeTest(
             mqttProducerAndConsumerForFromProducerToConsumerWhisSubscribeTest.producer,
             mqttProducerAndConsumerForFromProducerToConsumerWhisSubscribeTest.consumer
+        )
+        logger.info("=============REST START====================")
+
+        logger.info("fromProducerToConsumerNoSubscribeTest")
+        val restProducerAndConsumerForFromProducerToConsumerNoSubscribeTest = generateRestProducerAndConsumerForFromProducerToConsumerNoSubscribeTest()
+        fromProducerToConsumerNoSubscribeTest(
+            restProducerAndConsumerForFromProducerToConsumerNoSubscribeTest.producer,
+            restProducerAndConsumerForFromProducerToConsumerNoSubscribeTest.consumer
+        )
+        logger.info("restProducerAndConsumerForFromProducerToConsumerWhisSubscribeTest")
+        val restProducerAndConsumerForFromProducerToConsumerWhisSubscribeTest = generateRestProducerAndConsumerForFromProducerToConsumerWhisSubscribeTest()
+        fromProducerToConsumerWhisSubscribeTest(
+            restProducerAndConsumerForFromProducerToConsumerWhisSubscribeTest.producer,
+            restProducerAndConsumerForFromProducerToConsumerWhisSubscribeTest.consumer
         )
     }
 
@@ -156,8 +200,8 @@ class SmokeTestPd {
             }
 
             producer.publish(consumer.deviseId, message, object : Producer.OnMessageStatusChange {
-                override fun newStatusEvent(dto: com.duster.transport.data.dto.producer.message.ProducerMessageOutDto) {
-                    when (dto.deliveryStatus) {
+                override fun newStatusEvent(producerMessageOutDto: com.duster.transport.data.dto.producer.message.ProducerMessageOutDto) {
+                    when (producerMessageOutDto.deliveryStatus) {
                         DeliveryStatus.DELIVERED -> latchDelivered.countDown()
                         DeliveryStatus.COMPLETED -> latchCompleted.countDown()
                         else -> {}
