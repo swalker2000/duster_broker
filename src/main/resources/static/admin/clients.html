@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Админ — клиенты</title>
+    <style>
+        :root {
+            --bg: #0f1419;
+            --surface: #1a2332;
+            --border: #2d3a4d;
+            --text: #e7ecf3;
+            --muted: #8b9cb3;
+            --accent: #3d8bfd;
+            --danger: #e85d5d;
+            --ok: #3ecf8e;
+        }
+        * { box-sizing: border-box; }
+        body {
+            font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            margin: 0;
+            line-height: 1.5;
+            min-height: 100vh;
+        }
+        header {
+            padding: 1.25rem 1.5rem;
+            border-bottom: 1px solid var(--border);
+            background: var(--surface);
+        }
+        header h1 { margin: 0; font-size: 1.25rem; font-weight: 600; }
+        header p { margin: 0.35rem 0 0; color: var(--muted); font-size: 0.875rem; }
+        main { max-width: 1100px; margin: 0 auto; padding: 1.5rem; }
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 1.25rem;
+            margin-bottom: 1.5rem;
+        }
+        .card h2 { margin: 0 0 1rem; font-size: 1rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; }
+        label { display: block; font-size: 0.8rem; color: var(--muted); margin-bottom: 0.25rem; }
+        input, select, textarea {
+            width: 100%;
+            padding: 0.5rem 0.65rem;
+            border-radius: 6px;
+            border: 1px solid var(--border);
+            background: var(--bg);
+            color: var(--text);
+            margin-bottom: 0.75rem;
+        }
+        textarea { min-height: 4rem; resize: vertical; }
+        .row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+        @media (max-width: 640px) { .row { grid-template-columns: 1fr; } }
+        .actions { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.5rem; }
+        button {
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 0.875rem;
+        }
+        button.primary { background: var(--accent); color: #fff; }
+        button.secondary { background: var(--border); color: var(--text); }
+        button.danger { background: var(--danger); color: #fff; }
+        button:disabled { opacity: 0.5; cursor: not-allowed; }
+        table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
+        th, td { text-align: left; padding: 0.65rem 0.5rem; border-bottom: 1px solid var(--border); }
+        th { color: var(--muted); font-weight: 500; }
+        tr:hover td { background: rgba(255,255,255,0.02); }
+        .badge { display: inline-block; padding: 0.15rem 0.45rem; border-radius: 4px; font-size: 0.75rem; background: var(--border); }
+        .msg { padding: 0.75rem; border-radius: 6px; margin-bottom: 1rem; font-size: 0.875rem; display: none; }
+        .msg.err { display: block; background: rgba(232, 93, 93, 0.15); border: 1px solid var(--danger); }
+        .msg.ok { display: block; background: rgba(62, 207, 142, 0.12); border: 1px solid var(--ok); }
+        .table-actions { display: flex; gap: 0.35rem; flex-wrap: wrap; }
+        .table-actions button { padding: 0.35rem 0.6rem; font-size: 0.8rem; }
+    </style>
+</head>
+<body>
+<header>
+    <h1>Клиенты (устройства и пользователи)</h1>
+    <p>CRUD для сущности <code>Client</code> — REST: <code>/admin/api/clients</code></p>
+</header>
+<main>
+    <div id="flash" class="msg" role="alert"></div>
+
+    <section class="card">
+        <h2 id="form-title">Новый клиент</h2>
+        <form id="client-form">
+            <input type="hidden" id="edit-id" value="">
+            <div class="row">
+                <div>
+                    <label for="deviseId">deviseId (уникальный)</label>
+                    <input id="deviseId" required autocomplete="off" placeholder="например device-001">
+                </div>
+                <div>
+                    <label for="password">Пароль</label>
+                    <input id="password" type="password" required autocomplete="new-password" placeholder="пароль или хеш">
+                </div>
+            </div>
+            <div class="row">
+                <div>
+                    <label for="role">Роль</label>
+                    <select id="role">
+                        <option value="DEVISE">DEVISE</option>
+                        <option value="MAN">MAN</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="description">Описание</label>
+                    <input id="description" required placeholder="что за устройство / пользователь">
+                </div>
+            </div>
+            <div class="actions">
+                <button type="submit" class="primary" id="submit-btn">Создать</button>
+                <button type="button" class="secondary" id="reset-btn">Сбросить форму</button>
+            </div>
+        </form>
+    </section>
+
+    <section class="card">
+        <h2>Список</h2>
+        <div style="overflow-x: auto;">
+            <table>
+                <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>deviseId</th>
+                    <th>Пароль</th>
+                    <th>Роль</th>
+                    <th>Описание</th>
+                    <th></th>
+                </tr>
+                </thead>
+                <tbody id="tbody"></tbody>
+            </table>
+        </div>
+        <p id="empty-hint" style="color: var(--muted); display: none;">Записей нет.</p>
+    </section>
+</main>
+
+<script>
+    const API = '/admin/api/clients';
+    const tbody = document.getElementById('tbody');
+    const flash = document.getElementById('flash');
+    const form = document.getElementById('client-form');
+    const editId = document.getElementById('edit-id');
+    const formTitle = document.getElementById('form-title');
+    const submitBtn = document.getElementById('submit-btn');
+    const emptyHint = document.getElementById('empty-hint');
+
+    function showFlash(text, ok) {
+        flash.textContent = text;
+        flash.className = 'msg ' + (ok ? 'ok' : 'err');
+        if (ok) setTimeout(() => { flash.className = 'msg'; flash.textContent = ''; }, 3500);
+    }
+
+    async function loadList() {
+        const r = await fetch(API);
+        if (!r.ok) {
+            showFlash('Ошибка загрузки: ' + r.status, false);
+            return;
+        }
+        const list = await r.json();
+        tbody.innerHTML = '';
+        emptyHint.style.display = list.length ? 'none' : 'block';
+        for (const c of list) {
+            const tr = document.createElement('tr');
+            tr.innerHTML =
+                '<td>' + c.id + '</td>' +
+                '<td><code>' + escapeHtml(c.deviseId) + '</code></td>' +
+                '<td>••••••••</td>' +
+                '<td><span class="badge">' + escapeHtml(c.role) + '</span></td>' +
+                '<td>' + escapeHtml(c.description) + '</td>' +
+                '<td class="table-actions">' +
+                '<button type="button" class="secondary btn-edit" data-id="' + c.id + '">Изменить</button>' +
+                '<button type="button" class="danger btn-del" data-id="' + c.id + '">Удалить</button>' +
+                '</td>';
+            tbody.appendChild(tr);
+        }
+        tbody.querySelectorAll('.btn-edit').forEach(b => b.addEventListener('click', () => startEdit(+b.dataset.id, list)));
+        tbody.querySelectorAll('.btn-del').forEach(b => b.addEventListener('click', () => removeClient(+b.dataset.id)));
+    }
+
+    function escapeHtml(s) {
+        if (s == null) return '';
+        const d = document.createElement('div');
+        d.textContent = s;
+        return d.innerHTML;
+    }
+
+    function startEdit(id, list) {
+        const c = list.find(x => x.id === id);
+        if (!c) return;
+        editId.value = String(c.id);
+        document.getElementById('deviseId').value = c.deviseId;
+        document.getElementById('password').value = c.password;
+        document.getElementById('password').required = false;
+        document.getElementById('role').value = c.role;
+        document.getElementById('description').value = c.description;
+        formTitle.textContent = 'Редактирование #' + c.id;
+        submitBtn.textContent = 'Сохранить';
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function resetForm() {
+        editId.value = '';
+        form.reset();
+        document.getElementById('password').required = true;
+        formTitle.textContent = 'Новый клиент';
+        submitBtn.textContent = 'Создать';
+    }
+
+    document.getElementById('reset-btn').addEventListener('click', resetForm);
+
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const id = editId.value;
+        const body = {
+            deviseId: document.getElementById('deviseId').value.trim(),
+            password: document.getElementById('password').value,
+            role: document.getElementById('role').value,
+            description: document.getElementById('description').value.trim()
+        };
+        const opts = {
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body)
+        };
+        let r;
+        if (id) {
+            r = await fetch(API + '/' + id, { method: 'PUT', ...opts });
+        } else {
+            r = await fetch(API, { method: 'POST', ...opts });
+        }
+        if (!r.ok) {
+            let msg = r.status + ' ' + r.statusText;
+            try {
+                const err = await r.json();
+                if (err.message) msg = err.message;
+            } catch (_) {}
+            showFlash(msg, false);
+            return;
+        }
+        showFlash(id ? 'Сохранено' : 'Создано', true);
+        resetForm();
+        await loadList();
+    });
+
+    async function removeClient(id) {
+        if (!confirm('Удалить клиента #' + id + '?')) return;
+        const r = await fetch(API + '/' + id, { method: 'DELETE' });
+        if (!r.ok && r.status !== 204) {
+            showFlash('Удаление не удалось: ' + r.status, false);
+            return;
+        }
+        showFlash('Удалено', true);
+        await loadList();
+    }
+
+    loadList();
+</script>
+</body>
+</html>

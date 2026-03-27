@@ -1,11 +1,10 @@
 package com.duster.common
 
 import com.duster.database.MainRepository
-import com.duster.database.data.DeliveryStatus
-import com.duster.database.data.Message
+import com.duster.database.data.message.DeliveryStatus
+import com.duster.database.data.message.Message
 import com.duster.transport.data.MessageConverter
 import com.duster.transport.mqtt.cash.MessageSendTimeCash
-import com.duster.transport.mqtt.publisher.ConsumerMessagePublisher
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking

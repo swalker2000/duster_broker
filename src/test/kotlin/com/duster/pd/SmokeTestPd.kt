@@ -1,7 +1,7 @@
 package com.duster.pd
 
-import com.duster.database.data.DeliveryGuarantee
-import com.duster.database.data.DeliveryStatus
+import com.duster.database.data.message.DeliveryGuarantee
+import com.duster.database.data.message.DeliveryStatus
 import com.duster.transport.data.dto.consumer.ConsumerMessageInDto
 import com.duster.transport.data.dto.producer.message.MessageBirthCertificate
 import com.duster.transport.data.dto.producer.message.ProducerMessageInDto

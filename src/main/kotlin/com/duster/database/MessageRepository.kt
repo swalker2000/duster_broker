@@ -1,7 +1,7 @@
 package com.duster.database
 
-import com.duster.database.data.DeliveryStatus
-import com.duster.database.data.Message
+import com.duster.database.data.message.DeliveryStatus
+import com.duster.database.data.message.Message
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Modifying
 import org.springframework.data.jpa.repository.Query
@@ -73,7 +73,7 @@ interface MessageRepository: JpaRepository<Message, Int> {
         "UPDATE Message m SET m.deliveryStatus = :deliveryStatus " +
                 "WHERE m.command = :command AND " +
                 "m.deviseId = :deviseId AND " +
-                "m.deliveryStatus = com.duster.database.data.DeliveryStatus.NOT_DELIVERED ")
+                "m.deliveryStatus = com.duster.database.data.message.DeliveryStatus.NOT_DELIVERED ")
     fun updateDeliveryStatus(
         @Param("command") command: String,
         @Param("deviseId") deviseId: String,

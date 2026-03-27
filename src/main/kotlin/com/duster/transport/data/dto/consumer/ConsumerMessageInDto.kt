@@ -1,6 +1,6 @@
 package com.duster.transport.data.dto.consumer
 
-import com.duster.database.data.DeliveryStatus
+import com.duster.database.data.message.DeliveryStatus
 import com.duster.transport.data.dto.InDto
 
 /*

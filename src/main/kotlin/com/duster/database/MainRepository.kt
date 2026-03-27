@@ -1,8 +1,8 @@
 package com.duster.database
 
-import com.duster.database.data.DeliveryGuarantee
-import com.duster.database.data.DeliveryStatus
-import com.duster.database.data.Message
+import com.duster.database.data.message.DeliveryGuarantee
+import com.duster.database.data.message.DeliveryStatus
+import com.duster.database.data.message.Message
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Repository
 import org.springframework.transaction.annotation.Transactional

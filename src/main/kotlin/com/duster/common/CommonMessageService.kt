@@ -1,8 +1,8 @@
 package com.duster.common
 
 import com.duster.database.MainRepository
-import com.duster.database.data.DeliveryGuarantee
-import com.duster.database.data.DeliveryStatus
+import com.duster.database.data.message.DeliveryGuarantee
+import com.duster.database.data.message.DeliveryStatus
 import com.duster.transport.data.MessageConverter
 import com.duster.transport.data.dto.consumer.ConsumerMessageInDto
 import com.duster.transport.data.dto.consumer.ConsumerMessageOutDto

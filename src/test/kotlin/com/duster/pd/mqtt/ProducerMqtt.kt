@@ -1,6 +1,6 @@
 package com.duster.pd.mqtt
 
-import com.duster.database.data.DeliveryStatus
+import com.duster.database.data.message.DeliveryStatus
 import com.duster.transport.data.dto.producer.message.ProducerMessageInDto
 import com.duster.transport.data.dto.producer.message.ProducerMessageOutDto
 import com.duster.pd.Producer

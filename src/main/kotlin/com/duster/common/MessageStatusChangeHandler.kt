@@ -2,8 +2,8 @@ package com.duster.common
 
 import com.duster.common.messagepublishinterface.ProducerMessagePublishAction
 import com.duster.database.MainRepository
-import com.duster.database.data.DeliveryStatus
-import com.duster.database.data.Message
+import com.duster.database.data.message.DeliveryStatus
+import com.duster.database.data.message.Message
 import com.duster.transport.data.MessageConverter
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired

@@ -1,6 +1,6 @@
 package com.duster.transport.data.dto.producer.message
 
-import com.duster.database.data.DeliveryGuarantee
+import com.duster.database.data.message.DeliveryGuarantee
 import com.duster.transport.data.dto.InDto
 
 /**

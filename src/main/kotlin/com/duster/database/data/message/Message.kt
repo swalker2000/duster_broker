@@ -1,4 +1,4 @@
-package com.duster.database.data
+package com.duster.database.data.message
 
 import jakarta.persistence.*
 import org.hibernate.annotations.JdbcTypeCode
