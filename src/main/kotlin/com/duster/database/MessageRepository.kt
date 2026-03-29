@@ -2,6 +2,8 @@ package com.duster.database
 
 import com.duster.database.data.message.DeliveryStatus
 import com.duster.database.data.message.Message
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Modifying
 import org.springframework.data.jpa.repository.Query
@@ -12,8 +14,9 @@ import java.util.Optional
 
 interface MessageRepository: JpaRepository<Message, Int> {
 
+    fun findAllByOrderByCreatedDateDesc(pageable: Pageable): Page<Message>
 
-
+    fun findAllByDeviseIdOrderByCreatedDateDesc(deviseId: String, pageable: Pageable): Page<Message>
 
     /**
      * Проверяет, существует ли хотя бы одно не доставленное сообщение для данного deviceId. с данным статусом доставки.
