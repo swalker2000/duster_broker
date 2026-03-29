@@ -3,92 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Админ — клиенты</title>
-    <style>
-        :root {
-            --bg: #0f1419;
-            --surface: #1a2332;
-            --border: #2d3a4d;
-            --text: #e7ecf3;
-            --muted: #8b9cb3;
-            --accent: #3d8bfd;
-            --danger: #e85d5d;
-            --ok: #3ecf8e;
-        }
-        * { box-sizing: border-box; }
-        body {
-            font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
-            background: var(--bg);
-            color: var(--text);
-            margin: 0;
-            line-height: 1.5;
-            min-height: 100vh;
-        }
-        header {
-            padding: 1.25rem 1.5rem;
-            border-bottom: 1px solid var(--border);
-            background: var(--surface);
-        }
-        header h1 { margin: 0; font-size: 1.25rem; font-weight: 600; }
-        header p { margin: 0.35rem 0 0; color: var(--muted); font-size: 0.875rem; }
-        main { max-width: 1100px; margin: 0 auto; padding: 1.5rem; }
-        .card {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            padding: 1.25rem;
-            margin-bottom: 1.5rem;
-        }
-        .card h2 { margin: 0 0 1rem; font-size: 1rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; }
-        label { display: block; font-size: 0.8rem; color: var(--muted); margin-bottom: 0.25rem; }
-        input, select, textarea {
-            width: 100%;
-            padding: 0.5rem 0.65rem;
-            border-radius: 6px;
-            border: 1px solid var(--border);
-            background: var(--bg);
-            color: var(--text);
-            margin-bottom: 0.75rem;
-        }
-        textarea { min-height: 4rem; resize: vertical; }
-        .row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
-        @media (max-width: 640px) { .row { grid-template-columns: 1fr; } }
-        .actions { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.5rem; }
-        button {
-            padding: 0.5rem 1rem;
-            border-radius: 6px;
-            border: none;
-            cursor: pointer;
-            font-weight: 500;
-            font-size: 0.875rem;
-        }
-        button.primary { background: var(--accent); color: #fff; }
-        button.secondary { background: var(--border); color: var(--text); }
-        button.danger { background: var(--danger); color: #fff; }
-        button:disabled { opacity: 0.5; cursor: not-allowed; }
-        table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
-        th, td { text-align: left; padding: 0.65rem 0.5rem; border-bottom: 1px solid var(--border); }
-        th { color: var(--muted); font-weight: 500; }
-        tr:hover td { background: rgba(255,255,255,0.02); }
-        .badge { display: inline-block; padding: 0.15rem 0.45rem; border-radius: 4px; font-size: 0.75rem; background: var(--border); }
-        .msg { padding: 0.75rem; border-radius: 6px; margin-bottom: 1rem; font-size: 0.875rem; display: none; }
-        .msg.err { display: block; background: rgba(232, 93, 93, 0.15); border: 1px solid var(--danger); }
-        .msg.ok { display: block; background: rgba(62, 207, 142, 0.12); border: 1px solid var(--ok); }
-        .table-actions { display: flex; gap: 0.35rem; flex-wrap: wrap; }
-        .table-actions button { padding: 0.35rem 0.6rem; font-size: 0.8rem; }
-        .status-line { font-family: ui-monospace, monospace; font-size: 0.85rem; margin: 0.35rem 0; }
-        .status-line strong { color: var(--text); }
-        .badge.status-not { background: rgba(232, 93, 93, 0.2); color: #f5a0a0; }
-        .badge.status-ok { background: rgba(62, 207, 142, 0.2); color: #7ee0b0; }
-        .badge.status-warn { background: rgba(255, 193, 7, 0.2); color: #ffd666; }
-        .badge.status-muted { background: var(--border); color: var(--muted); }
-        .data-cell { max-width: 14rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: ui-monospace, monospace; font-size: 0.78rem; vertical-align: top; }
-    </style>
+    <title>Админ — клиенты и устройства</title>
+    <link rel="stylesheet" href="/admin/admin-common.css">
 </head>
 <body>
 <header>
-    <h1>Клиенты (устройства и пользователи)</h1>
+    <h1>Клиенты и устройства</h1>
     <p>CRUD для сущности <code>Client</code> — REST: <code>/admin/api/clients</code> (JWT, роль MAN)</p>
+    <nav class="admin-nav" aria-label="Разделы админки">
+        <a href="/admin/clients.html" class="active">Клиенты и устройства</a>
+        <a href="/admin/messages.html">Сообщения</a>
+    </nav>
     <p id="user-line" style="margin-top:0.75rem;font-size:0.875rem;color:var(--muted);"></p>
     <button type="button" class="secondary" id="logout-btn" style="margin-top:0.5rem;">Выйти</button>
 </header>
@@ -130,89 +55,6 @@
     </section>
 
     <section class="card">
-        <h2>Отправка сообщения на устройство</h2>
-        <p style="color: var(--muted); font-size: 0.875rem; margin: 0 0 1rem;">
-            REST: <code>PUT /producer/request/{deviceId}</code>, статус: <code>GET /producer/getMessageStatus/{id}</code>
-        </p>
-        <form id="send-form">
-            <div class="row">
-                <div>
-                    <label for="send-device">Устройство (роль DEVISE)</label>
-                    <select id="send-device" required>
-                        <option value="">— выберите —</option>
-                    </select>
-                </div>
-                <div>
-                    <label for="send-guarantee">Гарантия доставки</label>
-                    <select id="send-guarantee">
-                        <option value="RECEIPT_CONFIRMATION" selected>RECEIPT_CONFIRMATION</option>
-                        <option value="ONLY_LAST">ONLY_LAST</option>
-                        <option value="NO">NO</option>
-                    </select>
-                </div>
-            </div>
-            <label for="send-command">Команда (command)</label>
-            <input id="send-command" required autocomplete="off" placeholder="например digitalWrite">
-            <label for="send-data">Данные (JSON-объект, необязательно)</label>
-            <textarea id="send-data" placeholder='{ "pinNumber": 13, "pinValue": true }'></textarea>
-            <div class="actions">
-                <button type="submit" class="primary" id="send-btn">Отправить</button>
-                <button type="button" class="secondary" id="send-stop-poll" disabled>Остановить опрос статуса</button>
-            </div>
-        </form>
-        <div id="send-status-panel" style="margin-top: 1rem; display: none;">
-            <p class="status-line" id="send-msg-id"></p>
-            <p class="status-line" id="send-delivery-status"></p>
-            <p class="status-line" id="send-poll-hint" style="color: var(--muted);"></p>
-        </div>
-    </section>
-
-    <section class="card">
-        <h2>Отправленные сообщения</h2>
-        <p style="color: var(--muted); font-size: 0.875rem; margin: 0 0 1rem;">
-            REST: <code>GET /admin/api/messages</code> (последние записи, новые сверху)
-        </p>
-        <div class="row" style="margin-bottom: 0.75rem;">
-            <div>
-                <label for="msg-filter-device">Фильтр по устройству</label>
-                <select id="msg-filter-device">
-                    <option value="">Все устройства</option>
-                </select>
-            </div>
-            <div>
-                <label for="msg-limit">Сколько записей</label>
-                <select id="msg-limit">
-                    <option value="100">100</option>
-                    <option value="200" selected>200</option>
-                    <option value="500">500</option>
-                </select>
-            </div>
-        </div>
-        <div class="actions" style="margin-bottom: 1rem;">
-            <button type="button" class="primary" id="msg-refresh-btn">Обновить список</button>
-        </div>
-        <div style="overflow-x: auto;">
-            <table>
-                <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Устройство</th>
-                    <th>Команда</th>
-                    <th>Статус</th>
-                    <th>Гарантия</th>
-                    <th>Создано</th>
-                    <th>Доставлено</th>
-                    <th>Ошибка</th>
-                    <th>Данные</th>
-                </tr>
-                </thead>
-                <tbody id="messages-tbody"></tbody>
-            </table>
-        </div>
-        <p id="messages-empty" style="color: var(--muted); display: none;">Сообщений нет (или нет подходящих под фильтр).</p>
-    </section>
-
-    <section class="card">
         <h2>Список</h2>
         <div style="overflow-x: auto;">
             <table>
@@ -236,7 +78,6 @@
 <script>
     const TOKEN_KEY = 'dusterAdminJwt';
     const API = '/admin/api/clients';
-    const API_MESSAGES = '/admin/api/messages';
     const tbody = document.getElementById('tbody');
     const flash = document.getElementById('flash');
     const form = document.getElementById('client-form');
@@ -245,23 +86,6 @@
     const submitBtn = document.getElementById('submit-btn');
     const emptyHint = document.getElementById('empty-hint');
     const userLine = document.getElementById('user-line');
-    const sendDevice = document.getElementById('send-device');
-    const sendForm = document.getElementById('send-form');
-    const sendBtn = document.getElementById('send-btn');
-    const sendStopPoll = document.getElementById('send-stop-poll');
-    const sendStatusPanel = document.getElementById('send-status-panel');
-    const sendMsgIdEl = document.getElementById('send-msg-id');
-    const sendDeliveryStatusEl = document.getElementById('send-delivery-status');
-    const sendPollHintEl = document.getElementById('send-poll-hint');
-    const msgFilterDevice = document.getElementById('msg-filter-device');
-    const msgLimit = document.getElementById('msg-limit');
-    const messagesTbody = document.getElementById('messages-tbody');
-    const messagesEmpty = document.getElementById('messages-empty');
-    const msgRefreshBtn = document.getElementById('msg-refresh-btn');
-
-    const TERMINAL_STATUSES = new Set(['COMPLETED', 'COMPLETED_WITH_ERROR', 'CANCELLED', 'UNKNOWN']);
-    let statusPollTimer = null;
-    let statusPollDeadline = 0;
 
     function getToken() {
         return sessionStorage.getItem(TOKEN_KEY);
@@ -327,7 +151,6 @@
             return;
         }
         const list = await r.json();
-        fillDeviceSelect(list);
         tbody.innerHTML = '';
         emptyHint.style.display = list.length ? 'none' : 'block';
         for (const c of list) {
@@ -354,249 +177,6 @@
         d.textContent = s;
         return d.innerHTML;
     }
-
-    function escapeAttr(s) {
-        if (s == null) return '';
-        return String(s)
-            .replace(/&/g, '&amp;')
-            .replace(/"/g, '&quot;')
-            .replace(/'/g, '&#39;')
-            .replace(/</g, '&lt;');
-    }
-
-    function statusBadgeClass(status) {
-        if (status === 'DELIVERED' || status === 'COMPLETED') return 'badge status-ok';
-        if (status === 'NOT_DELIVERED') return 'badge status-not';
-        if (status === 'COMPLETED_WITH_ERROR' || status === 'CANCELLED') return 'badge status-warn';
-        return 'badge status-muted';
-    }
-
-    function stopStatusPoll() {
-        if (statusPollTimer) {
-            clearInterval(statusPollTimer);
-            statusPollTimer = null;
-        }
-        sendStopPoll.disabled = true;
-        sendPollHintEl.textContent = '';
-    }
-
-    function fillMessageFilterSelect(devices) {
-        const prev = msgFilterDevice.value;
-        msgFilterDevice.innerHTML = '<option value="">Все устройства</option>';
-        for (const c of devices) {
-            const opt = document.createElement('option');
-            opt.value = c.deviseId;
-            opt.textContent = c.deviseId + (c.description ? ' — ' + c.description : '');
-            msgFilterDevice.appendChild(opt);
-        }
-        if (prev && [...msgFilterDevice.options].some(o => o.value === prev)) msgFilterDevice.value = prev;
-    }
-
-    function fillDeviceSelect(list) {
-        const prev = sendDevice.value;
-        sendDevice.innerHTML = '';
-        const devices = (list || []).filter(c => c.role === 'DEVISE');
-        fillMessageFilterSelect(devices);
-        if (devices.length === 0) {
-            const opt = document.createElement('option');
-            opt.value = '';
-            opt.textContent = 'Нет устройств (роль DEVISE) — создайте клиента выше';
-            sendDevice.appendChild(opt);
-            sendDevice.disabled = true;
-            return;
-        }
-        sendDevice.disabled = false;
-        const empty = document.createElement('option');
-        empty.value = '';
-        empty.textContent = '— выберите —';
-        sendDevice.appendChild(empty);
-        for (const c of devices) {
-            const opt = document.createElement('option');
-            opt.value = c.deviseId;
-            opt.textContent = c.deviseId + (c.description ? ' — ' + c.description : '');
-            sendDevice.appendChild(opt);
-        }
-        if (prev && devices.some(d => d.deviseId === prev)) sendDevice.value = prev;
-    }
-
-    function formatDateTime(ms) {
-        if (ms == null) return '—';
-        try {
-            return new Date(ms).toLocaleString('ru-RU', { dateStyle: 'short', timeStyle: 'medium' });
-        } catch (_) {
-            return String(ms);
-        }
-    }
-
-    function truncateDataJson(data) {
-        if (data == null) return { text: '—', title: '' };
-        let s;
-        try {
-            s = JSON.stringify(data);
-        } catch (_) {
-            s = String(data);
-        }
-        const text = s.length > 80 ? s.slice(0, 80) + '…' : s;
-        return { text, title: s };
-    }
-
-    async function loadMessages() {
-        const limit = msgLimit.value || '200';
-        let url = API_MESSAGES + '?limit=' + encodeURIComponent(limit);
-        const fd = msgFilterDevice.value.trim();
-        if (fd) url += '&deviseId=' + encodeURIComponent(fd);
-        const r = await apiFetch(url);
-        if (r.status === 401 || r.status === 403) {
-            redirectToLogin(r.status === 403 ? 'forbidden' : '');
-            return;
-        }
-        if (!r.ok) {
-            showFlash('Не удалось загрузить сообщения: ' + r.status, false);
-            return;
-        }
-        const list = await r.json();
-        messagesTbody.innerHTML = '';
-        messagesEmpty.style.display = list.length ? 'none' : 'block';
-        for (const m of list) {
-            const dj = truncateDataJson(m.data);
-            const tr = document.createElement('tr');
-            tr.innerHTML =
-                '<td>' + m.id + '</td>' +
-                '<td><code>' + escapeHtml(m.deviseId) + '</code></td>' +
-                '<td>' + escapeHtml(m.command) + '</td>' +
-                '<td><span class="' + statusBadgeClass(m.deliveryStatus) + '">' + escapeHtml(m.deliveryStatus) + '</span></td>' +
-                '<td><span class="badge">' + escapeHtml(m.deliveryGuarantee) + '</span></td>' +
-                '<td>' + escapeHtml(formatDateTime(m.createdDate)) + '</td>' +
-                '<td>' + escapeHtml(formatDateTime(m.deliveredDate)) + '</td>' +
-                '<td>' + (m.deliveredError ? '<span class="badge status-warn">да</span>' : '—') + '</td>' +
-                '<td class="data-cell" title="' + escapeAttr(dj.title || dj.text) + '">' + escapeHtml(dj.text) + '</td>';
-            messagesTbody.appendChild(tr);
-        }
-    }
-
-    msgRefreshBtn.addEventListener('click', () => loadMessages());
-    msgFilterDevice.addEventListener('change', () => loadMessages());
-    msgLimit.addEventListener('change', () => loadMessages());
-
-    async function fetchMessageStatus(messageId) {
-        const r = await apiFetch('/producer/getMessageStatus/' + messageId);
-        if (r.status === 401 || r.status === 403) {
-            redirectToLogin(r.status === 403 ? 'forbidden' : '');
-            return null;
-        }
-        if (r.status === 404) return null;
-        if (!r.ok) return null;
-        return r.json();
-    }
-
-    function renderSendStatus(messageId, status) {
-        sendStatusPanel.style.display = 'block';
-        sendMsgIdEl.innerHTML = '<strong>ID сообщения:</strong> ' + escapeHtml(String(messageId));
-        sendDeliveryStatusEl.innerHTML =
-            '<strong>Статус доставки:</strong> <span class="' + statusBadgeClass(status) + '">' +
-            escapeHtml(status) + '</span>';
-    }
-
-    function startStatusPoll(messageId, initialStatus) {
-        stopStatusPoll();
-        renderSendStatus(messageId, initialStatus);
-        if (TERMINAL_STATUSES.has(initialStatus)) {
-            sendPollHintEl.textContent = 'Финальный статус (опрос не требуется).';
-            return;
-        }
-        sendStopPoll.disabled = false;
-        const maxMs = 120000;
-        statusPollDeadline = Date.now() + maxMs;
-        sendPollHintEl.textContent = 'Идёт опрос статуса (до ' + (maxMs / 1000) + ' с)…';
-
-        statusPollTimer = setInterval(async () => {
-            if (Date.now() > statusPollDeadline) {
-                stopStatusPoll();
-                sendPollHintEl.textContent = 'Опрос остановлен по таймауту. Последний показанный статус актуален на момент последнего запроса.';
-                loadMessages();
-                return;
-            }
-            const dto = await fetchMessageStatus(messageId);
-            if (!dto || dto.deliveryStatus == null) return;
-            const st = dto.deliveryStatus;
-            renderSendStatus(messageId, st);
-            if (TERMINAL_STATUSES.has(st)) {
-                stopStatusPoll();
-                sendPollHintEl.textContent = 'Достигнут финальный статус.';
-                loadMessages();
-            }
-        }, 1000);
-    }
-
-    sendStopPoll.addEventListener('click', () => {
-        stopStatusPoll();
-        sendPollHintEl.textContent = 'Опрос остановлен вручную.';
-    });
-
-    sendForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        if (sendDevice.disabled) {
-            showFlash('Нет устройств с ролью DEVISE — создайте клиента в форме выше', false);
-            return;
-        }
-        const deviseId = sendDevice.value.trim();
-        if (!deviseId) {
-            showFlash('Выберите устройство', false);
-            return;
-        }
-        const rawData = document.getElementById('send-data').value.trim();
-        let data = null;
-        if (rawData) {
-            try {
-                data = JSON.parse(rawData);
-                if (data === null || typeof data !== 'object' || Array.isArray(data)) {
-                    showFlash('Поле «Данные» должно быть JSON-объектом {...}', false);
-                    return;
-                }
-            } catch (_) {
-                showFlash('Некорректный JSON в поле «Данные»', false);
-                return;
-            }
-        }
-        const body = {
-            believerGuarantee: document.getElementById('send-guarantee').value,
-            command: document.getElementById('send-command').value.trim(),
-            data: data
-        };
-        sendBtn.disabled = true;
-        stopStatusPoll();
-        sendStatusPanel.style.display = 'none';
-        try {
-            const pathDevise = encodeURIComponent(deviseId);
-            const r = await apiFetch('/producer/request/' + pathDevise, {
-                method: 'PUT',
-                headers: authHeaders(),
-                body: JSON.stringify(body)
-            });
-            if (r.status === 401 || r.status === 403) {
-                redirectToLogin(r.status === 403 ? 'forbidden' : '');
-                return;
-            }
-            if (!r.ok) {
-                let msg = r.status + ' ' + r.statusText;
-                try {
-                    const err = await r.json();
-                    if (err.message) msg = err.message;
-                    else if (err.error) msg = err.error;
-                } catch (_) {}
-                showFlash(msg, false);
-                return;
-            }
-            const out = await r.json();
-            const mid = out.id;
-            const st = out.deliveryStatus || 'NOT_DELIVERED';
-            showFlash('Сообщение создано, id=' + mid, true);
-            startStatusPoll(mid, st);
-            loadMessages();
-        } finally {
-            sendBtn.disabled = false;
-        }
-    });
 
     function startEdit(id, list) {
         const c = list.find(x => x.id === id);
@@ -683,7 +263,6 @@
     (async function init() {
         if (!(await ensureManSession())) return;
         await loadList();
-        await loadMessages();
     })();
 </script>
 </body>
