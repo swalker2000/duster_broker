@@ -5,6 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Админ — сообщения</title>
     <link rel="stylesheet" href="/admin/admin-common.css">
+    <style>
+        #messages-tbody tr.msg-row-clickable { cursor: pointer; }
+        #messages-tbody tr.msg-row-clickable:hover td { background: rgba(61, 139, 253, 0.06); }
+        #messages-tbody tr.msg-row-selected td { background: rgba(61, 139, 253, 0.1); }
+        #messages-tbody tr.msg-row-selected td:first-child { box-shadow: inset 3px 0 0 var(--accent); }
+    </style>
 </head>
 <body>
 <header>
@@ -61,7 +67,7 @@
     <section class="card">
         <h2>Отправленные сообщения</h2>
         <p style="color: var(--muted); font-size: 0.875rem; margin: 0 0 1rem;">
-            <code>GET /admin/api/messages</code> — последние записи, новые сверху
+            <code>GET /admin/api/messages</code> — последние записи, новые сверху. <strong>Клик по строке</strong> подставляет устройство, гарантию, команду и данные в форму отправки выше.
         </p>
         <div class="row" style="margin-bottom: 0.75rem;">
             <div>
@@ -123,8 +129,12 @@
     const messagesTbody = document.getElementById('messages-tbody');
     const messagesEmpty = document.getElementById('messages-empty');
     const msgRefreshBtn = document.getElementById('msg-refresh-btn');
+    const sendGuaranteeEl = document.getElementById('send-guarantee');
+    const sendCommandEl = document.getElementById('send-command');
+    const sendDataEl = document.getElementById('send-data');
 
     const TERMINAL_STATUSES = new Set(['COMPLETED', 'COMPLETED_WITH_ERROR', 'CANCELLED', 'UNKNOWN']);
+    let selectedMessageRow = null;
     let statusPollTimer = null;
     let statusPollDeadline = 0;
 
@@ -287,6 +297,46 @@
         return { text, title: s };
     }
 
+    function ensureSendDeviceOption(deviseId) {
+        if (!deviseId) return;
+        if ([...sendDevice.options].some(o => o.value === deviseId)) return;
+        const opt = document.createElement('option');
+        opt.value = deviseId;
+        opt.textContent = deviseId + ' (из истории, нет среди клиентов DEVISE)';
+        sendDevice.appendChild(opt);
+        sendDevice.disabled = false;
+    }
+
+    function applyMessageToSendForm(m) {
+        stopStatusPoll();
+        sendStatusPanel.style.display = 'none';
+        ensureSendDeviceOption(m.deviseId);
+        sendDevice.value = m.deviseId || '';
+        const g = m.deliveryGuarantee;
+        if (g && [...sendGuaranteeEl.options].some(o => o.value === g)) {
+            sendGuaranteeEl.value = g;
+        }
+        sendCommandEl.value = m.command != null ? String(m.command) : '';
+        if (m.data != null) {
+            try {
+                sendDataEl.value = JSON.stringify(m.data, null, 2);
+            } catch (_) {
+                sendDataEl.value = '';
+            }
+        } else {
+            sendDataEl.value = '';
+        }
+        document.getElementById('send-form').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        showFlash('Поля отправки заполнены из сообщения #' + m.id, true);
+    }
+
+    function selectMessageRow(tr, m) {
+        if (selectedMessageRow) selectedMessageRow.classList.remove('msg-row-selected');
+        selectedMessageRow = tr;
+        tr.classList.add('msg-row-selected');
+        applyMessageToSendForm(m);
+    }
+
     async function loadMessages() {
         const limit = msgLimit.value || '200';
         let url = API_MESSAGES + '?limit=' + encodeURIComponent(limit);
@@ -302,11 +352,16 @@
             return;
         }
         const list = await r.json();
+        selectedMessageRow = null;
         messagesTbody.innerHTML = '';
         messagesEmpty.style.display = list.length ? 'none' : 'block';
         for (const m of list) {
             const dj = truncateDataJson(m.data);
             const tr = document.createElement('tr');
+            tr.className = 'msg-row-clickable';
+            tr.tabIndex = 0;
+            tr.setAttribute('role', 'button');
+            tr.setAttribute('aria-label', 'Подставить в форму отправки сообщение ' + m.id);
             tr.innerHTML =
                 '<td>' + m.id + '</td>' +
                 '<td><code>' + escapeHtml(m.deviseId) + '</code></td>' +
@@ -317,6 +372,13 @@
                 '<td>' + escapeHtml(formatDateTime(m.deliveredDate)) + '</td>' +
                 '<td>' + (m.deliveredError ? '<span class="badge status-warn">да</span>' : '—') + '</td>' +
                 '<td class="data-cell" title="' + escapeAttr(dj.title || dj.text) + '">' + escapeHtml(dj.text) + '</td>';
+            tr.addEventListener('click', () => selectMessageRow(tr, m));
+            tr.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    selectMessageRow(tr, m);
+                }
+            });
             messagesTbody.appendChild(tr);
         }
     }
