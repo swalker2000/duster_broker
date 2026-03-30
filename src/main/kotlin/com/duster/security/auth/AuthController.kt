@@ -1,4 +1,4 @@
-package com.duster.auth
+package com.duster.security.auth
 
 import com.duster.database.ClientRepository
 import com.duster.security.ClientPasswords
