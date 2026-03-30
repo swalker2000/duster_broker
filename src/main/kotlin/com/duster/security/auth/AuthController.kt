@@ -3,6 +3,9 @@ package com.duster.security.auth
 import com.duster.database.ClientRepository
 import com.duster.security.ClientPasswords
 import com.duster.security.JwtService
+import com.duster.security.auth.dto.Credentials
+import com.duster.security.auth.dto.Decision
+import io.swagger.v3.oas.annotations.Operation
 import org.springframework.http.HttpStatus
 import org.springframework.security.core.Authentication
 import org.springframework.security.crypto.password.PasswordEncoder
@@ -56,5 +59,21 @@ class AuthController(
         val deviseId = authentication.name?.takeIf { it.isNotBlank() }
             ?: throw ResponseStatusException(HttpStatus.UNAUTHORIZED)
         return MeResponse(deviseId = deviseId, role = role)
+    }
+
+    /**
+     * Есть ли клиент с подобными логином и паролем.
+     * @return true если есть false если нет.
+     */
+    @Operation(summary = "Is client with given credentials enabled.")
+    @PostMapping("/isClientEnabled")
+    fun isClientEnabled(@RequestBody credentials: Credentials): Decision {
+        val deviseId = credentials.username.trim()
+        if (deviseId.isBlank() || credentials.password.isBlank()) {
+            throw ResponseStatusException(HttpStatus.BAD_REQUEST, "username and password are required")
+        }
+        val client = clientRepository.findByDeviseId(deviseId) ?: return Decision(false)
+        val ok = ClientPasswords.matches(credentials.password, client.password, passwordEncoder)
+        return Decision(ok)
     }
 }

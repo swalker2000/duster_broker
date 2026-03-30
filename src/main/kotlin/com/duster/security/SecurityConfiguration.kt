@@ -35,7 +35,7 @@ class SecurityConfiguration(
                 if (appSecurityProperties.permitAll) {
                     auth.anyRequest().permitAll()
                 } else {
-                    auth.requestMatchers("/auth/login").permitAll()
+                    auth.requestMatchers("/auth/login", "/auth/isClientEnabled").permitAll()
                     auth.requestMatchers(
                         "/v3/api-docs/**",
                         "/swagger-ui/**",
