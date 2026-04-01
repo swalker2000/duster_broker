@@ -1,10 +1,13 @@
 package com.duster.database.data.client
 
+import com.duster.database.data.savedmessages.SavedMessage
 import com.fasterxml.jackson.annotation.JsonProperty
+import jakarta.persistence.CascadeType
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.GeneratedValue
 import jakarta.persistence.Id
+import jakarta.persistence.OneToMany
 import jakarta.persistence.Table
 
 /**
@@ -46,4 +49,10 @@ class Client {
      */
     @Column(nullable = false)
     var description = ""
+
+    /**
+     * Список сохраненных сообщений для клиента.
+     */
+    @OneToMany(mappedBy = "client", cascade = [(CascadeType.ALL)])
+    var savedMessage : List<SavedMessage> = emptyList()
 }
