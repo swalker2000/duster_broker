@@ -2,14 +2,12 @@ package com.duster.database.data.savedmessages
 
 import com.duster.database.data.client.Client
 import com.duster.database.data.message.DeliveryGuarantee
-import com.duster.database.data.message.DeliveryStatus
 import jakarta.persistence.*
 import org.hibernate.annotations.JdbcTypeCode
 import org.hibernate.type.SqlTypes
-import java.util.*
 
 
-/**?
+/**
  * Сообщение которое пользователь сохранил, что бы отправлять другим пользователям.
  */
 @Table
@@ -28,6 +26,12 @@ class SavedMessage {
      */
     @ManyToOne
     var client : Client? = null
+
+    /**
+     * Описание того что делает данное сообщение.
+     */
+    @Column(nullable = false)
+    var description: String = ""
 
 
     //----------------------Статусы классификации-------------------------

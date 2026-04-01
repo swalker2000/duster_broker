@@ -3,7 +3,6 @@ package com.duster.transport.data
 import com.duster.database.data.message.DeliveryGuarantee
 import com.duster.database.data.message.DeliveryStatus
 import com.duster.database.data.message.Message
-import com.duster.database.data.savedmessages.SavedMessage
 import com.duster.transport.data.dto.consumer.ConsumerMessageOutDto
 import com.duster.transport.data.dto.producer.ProducerDeliveryStatusOutDto
 import com.duster.transport.data.dto.producer.message.ProducerMessageInDto

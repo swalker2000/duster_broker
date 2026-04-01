@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Админ — сохраняемые сообщения</title>
+    <link rel="stylesheet" href="/admin/admin-common.css">
+</head>
+<body>
+<header>
+    <h1>Сохраняемые сообщения</h1>
+    <p>Шаблоны команд для устройств (DEVISE): CRUD и отправка на выбранное устройство. REST: <code>/admin/api/saved-messages</code></p>
+    <nav class="admin-nav" aria-label="Разделы админки">
+        <a href="/admin/clients.html">Клиенты и устройства</a>
+        <a href="/admin/messages.html">Сообщения</a>
+        <a href="/admin/saved-messages.html" class="active">Сохраняемые</a>
+    </nav>
+    <p id="user-line" style="margin-top:0.75rem;font-size:0.875rem;color:var(--muted);"></p>
+    <button type="button" class="secondary" id="logout-btn" style="margin-top:0.5rem;">Выйти</button>
+</header>
+<main>
+    <div id="flash" class="msg" role="alert"></div>
+
+    <section class="card">
+        <h2>Новый шаблон</h2>
+        <p style="color: var(--muted); font-size: 0.875rem; margin: 0 0 1rem;">
+            Шаблон привязывается к устройству (клиент с ролью <code>DEVISE</code>) — так удобнее фильтровать список. Отправка может идти на любое другое устройство ниже.
+        </p>
+        <form id="create-form">
+            <div class="row">
+                <div>
+                    <label for="tpl-client">Устройство-владелец шаблона</label>
+                    <select id="tpl-client" required>
+                        <option value="">— выберите —</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="tpl-guarantee">Гарантия доставки</label>
+                    <select id="tpl-guarantee">
+                        <option value="RECEIPT_CONFIRMATION" selected>RECEIPT_CONFIRMATION</option>
+                        <option value="ONLY_LAST">ONLY_LAST</option>
+                        <option value="NO">NO</option>
+                    </select>
+                </div>
+            </div>
+            <label for="tpl-description">Описание</label>
+            <input id="tpl-description" required autocomplete="off" placeholder="что делает команда">
+            <label for="tpl-command">Команда (command)</label>
+            <input id="tpl-command" required autocomplete="off" placeholder="например digitalWrite">
+            <label for="tpl-data">Данные (JSON-объект, необязательно)</label>
+            <textarea id="tpl-data" placeholder='{ "pinNumber": 13, "pinValue": true }'></textarea>
+            <div class="actions">
+                <button type="submit" class="primary" id="tpl-submit">Создать шаблон</button>
+            </div>
+        </form>
+    </section>
+
+    <section class="card">
+        <h2>Отправка шаблона на устройство</h2>
+        <div class="row">
+            <div>
+                <label for="send-target">Устройство-получатель</label>
+                <select id="send-target" required>
+                    <option value="">— выберите —</option>
+                </select>
+            </div>
+        </div>
+        <p style="color: var(--muted); font-size: 0.875rem; margin: 0.75rem 0 0;">
+            В таблице нажмите «Отправить» у нужного шаблона — уйдёт на выбранное выше устройство (тело как у <code>PUT /producer/request/{deviseId}</code>).
+        </p>
+        <div id="send-status-panel" style="margin-top: 1rem; display: none;">
+            <p class="status-line" id="send-msg-id"></p>
+            <p class="status-line" id="send-delivery-status"></p>
+            <p class="status-line" id="send-poll-hint" style="color: var(--muted);"></p>
+        </div>
+        <div class="actions" style="margin-top: 0.75rem;">
+            <button type="button" class="secondary" id="send-stop-poll" disabled>Остановить опрос статуса</button>
+        </div>
+    </section>
+
+    <section class="card">
+        <h2>Список шаблонов</h2>
+        <div class="row" style="margin-bottom: 0.75rem;">
+            <div>
+                <label for="list-filter-device">Фильтр по устройству-владельцу</label>
+                <select id="list-filter-device">
+                    <option value="">Все шаблоны</option>
+                </select>
+            </div>
+            <div class="actions" style="align-self: flex-end; margin-bottom: 0;">
+                <button type="button" class="primary" id="list-refresh">Обновить</button>
+            </div>
+        </div>
+        <div style="overflow-x: auto;">
+            <table>
+                <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Владелец</th>
+                    <th>Описание</th>
+                    <th>Команда</th>
+                    <th>Гарантия</th>
+                    <th>Данные</th>
+                    <th></th>
+                </tr>
+                </thead>
+                <tbody id="tbody"></tbody>
+            </table>
+        </div>
+        <p id="empty-hint" style="color: var(--muted); display: none;">Шаблонов нет (или нет под фильтр).</p>
+    </section>
+</main>
+
+<script>
+    const TOKEN_KEY = 'dusterAdminJwt';
+    const API_CLIENTS = '/admin/api/clients';
+    const API_SAVED = '/admin/api/saved-messages';
+    const flash = document.getElementById('flash');
+    const userLine = document.getElementById('user-line');
+    const tbody = document.getElementById('tbody');
+    const emptyHint = document.getElementById('empty-hint');
+    const tplClient = document.getElementById('tpl-client');
+    const listFilterDevice = document.getElementById('list-filter-device');
+    const sendTarget = document.getElementById('send-target');
+    const sendStatusPanel = document.getElementById('send-status-panel');
+    const sendMsgIdEl = document.getElementById('send-msg-id');
+    const sendDeliveryStatusEl = document.getElementById('send-delivery-status');
+    const sendPollHintEl = document.getElementById('send-poll-hint');
+    const sendStopPoll = document.getElementById('send-stop-poll');
+
+    const TERMINAL_STATUSES = new Set(['COMPLETED', 'COMPLETED_WITH_ERROR', 'CANCELLED', 'UNKNOWN']);
+    let statusPollTimer = null;
+    let statusPollDeadline = 0;
+
+    function getToken() {
+        return sessionStorage.getItem(TOKEN_KEY);
+    }
+
+    function authHeaders() {
+        const t = getToken();
+        const h = { 'Content-Type': 'application/json' };
+        if (t) h['Authorization'] = 'Bearer ' + t;
+        return h;
+    }
+
+    async function apiFetch(url, options) {
+        const opts = options || {};
+        const headers = new Headers(opts.headers || {});
+        const t = getToken();
+        if (t) headers.set('Authorization', 'Bearer ' + t);
+        return fetch(url, Object.assign({}, opts, { headers: headers }));
+    }
+
+    function redirectToLogin(reason) {
+        sessionStorage.removeItem(TOKEN_KEY);
+        const q = reason ? ('?reason=' + encodeURIComponent(reason)) : '';
+        location.href = '/admin/login.html' + q;
+    }
+
+    async function ensureManSession() {
+        const t = getToken();
+        if (!t) {
+            redirectToLogin();
+            return false;
+        }
+        const r = await fetch('/auth/me', { headers: { 'Authorization': 'Bearer ' + t } });
+        if (!r.ok) {
+            redirectToLogin();
+            return false;
+        }
+        const me = await r.json();
+        if (me.role !== 'MAN') {
+            redirectToLogin('forbidden');
+            return false;
+        }
+        userLine.textContent = 'Вы вошли как ' + me.deviseId + ' (MAN)';
+        return true;
+    }
+
+    document.getElementById('logout-btn').addEventListener('click', () => redirectToLogin());
+
+    function showFlash(text, ok) {
+        flash.textContent = text;
+        flash.className = 'msg ' + (ok ? 'ok' : 'err');
+        if (ok) setTimeout(() => { flash.className = 'msg'; flash.textContent = ''; }, 3500);
+    }
+
+    function escapeHtml(s) {
+        if (s == null) return '';
+        const d = document.createElement('div');
+        d.textContent = s;
+        return d.innerHTML;
+    }
+
+    function escapeAttr(s) {
+        if (s == null) return '';
+        return String(s)
+            .replace(/&/g, '&amp;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;')
+            .replace(/</g, '&lt;');
+    }
+
+    function statusBadgeClass(status) {
+        if (status === 'DELIVERED' || status === 'COMPLETED') return 'badge status-ok';
+        if (status === 'NOT_DELIVERED') return 'badge status-not';
+        if (status === 'COMPLETED_WITH_ERROR' || status === 'CANCELLED') return 'badge status-warn';
+        return 'badge status-muted';
+    }
+
+    function fillDeviceSelects(devices) {
+        const prevTpl = tplClient.value;
+        const prevFilter = listFilterDevice.value;
+        const prevSend = sendTarget.value;
+
+        tplClient.innerHTML = '<option value="">— выберите —</option>';
+        listFilterDevice.innerHTML = '<option value="">Все шаблоны</option>';
+        sendTarget.innerHTML = '<option value="">— выберите —</option>';
+
+        if (devices.length === 0) {
+            const opt = document.createElement('option');
+            opt.value = '';
+            opt.textContent = 'Нет устройств DEVISE';
+            tplClient.appendChild(opt);
+            tplClient.disabled = true;
+            return;
+        }
+        tplClient.disabled = false;
+        for (const c of devices) {
+            const label = c.deviseId + (c.description ? ' — ' + c.description : '');
+            const o1 = document.createElement('option');
+            o1.value = String(c.id);
+            o1.textContent = label;
+            tplClient.appendChild(o1);
+
+            const o2 = document.createElement('option');
+            o2.value = c.deviseId;
+            o2.textContent = label;
+            listFilterDevice.appendChild(o2);
+
+            const o3 = document.createElement('option');
+            o3.value = c.deviseId;
+            o3.textContent = label;
+            sendTarget.appendChild(o3);
+        }
+        if (prevTpl && [...tplClient.options].some(o => o.value === prevTpl)) tplClient.value = prevTpl;
+        if (prevFilter && [...listFilterDevice.options].some(o => o.value === prevFilter)) listFilterDevice.value = prevFilter;
+        if (prevSend && [...sendTarget.options].some(o => o.value === prevSend)) sendTarget.value = prevSend;
+    }
+
+    async function loadClients() {
+        const r = await apiFetch(API_CLIENTS);
+        if (r.status === 401 || r.status === 403) {
+            redirectToLogin(r.status === 403 ? 'forbidden' : '');
+            return;
+        }
+        if (!r.ok) {
+            showFlash('Не удалось загрузить клиентов: ' + r.status, false);
+            return;
+        }
+        const list = await r.json();
+        const devices = (list || []).filter(c => c.role === 'DEVISE');
+        fillDeviceSelects(devices);
+    }
+
+    function truncateDataJson(data) {
+        if (data == null) return { text: '—', title: '' };
+        let s;
+        try {
+            s = JSON.stringify(data);
+        } catch (_) {
+            s = String(data);
+        }
+        const text = s.length > 60 ? s.slice(0, 60) + '…' : s;
+        return { text, title: s };
+    }
+
+    async function loadList() {
+        let url = API_SAVED;
+        const fd = listFilterDevice.value.trim();
+        if (fd) url += '?deviseId=' + encodeURIComponent(fd);
+        const r = await apiFetch(url);
+        if (r.status === 401 || r.status === 403) {
+            redirectToLogin(r.status === 403 ? 'forbidden' : '');
+            return;
+        }
+        if (!r.ok) {
+            showFlash('Ошибка загрузки списка: ' + r.status, false);
+            return;
+        }
+        const list = await r.json();
+        tbody.innerHTML = '';
+        emptyHint.style.display = list.length ? 'none' : 'block';
+        for (const row of list) {
+            const dj = truncateDataJson(row.data);
+            const tr = document.createElement('tr');
+            tr.innerHTML =
+                '<td>' + row.id + '</td>' +
+                '<td><code>' + escapeHtml(row.deviseId || '—') + '</code></td>' +
+                '<td>' + escapeHtml(row.description) + '</td>' +
+                '<td>' + escapeHtml(row.command) + '</td>' +
+                '<td><span class="badge">' + escapeHtml(row.deliveryGuarantee) + '</span></td>' +
+                '<td title="' + escapeAttr(dj.title || dj.text) + '">' + escapeHtml(dj.text) + '</td>' +
+                '<td class="table-actions">' +
+                '<button type="button" class="primary btn-send" data-id="' + row.id + '">Отправить</button>' +
+                '<button type="button" class="danger btn-del" data-id="' + row.id + '">Удалить</button>' +
+                '</td>';
+            tbody.appendChild(tr);
+        }
+        tbody.querySelectorAll('.btn-del').forEach(b => b.addEventListener('click', () => removeTpl(+b.dataset.id)));
+        tbody.querySelectorAll('.btn-send').forEach(b => b.addEventListener('click', () => sendTpl(+b.dataset.id)));
+    }
+
+    document.getElementById('create-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        if (tplClient.disabled || !tplClient.value) {
+            showFlash('Выберите устройство-владелец', false);
+            return;
+        }
+        const rawData = document.getElementById('tpl-data').value.trim();
+        let data = null;
+        if (rawData) {
+            try {
+                data = JSON.parse(rawData);
+                if (data === null || typeof data !== 'object' || Array.isArray(data)) {
+                    showFlash('Поле «Данные» должно быть JSON-объектом {...}', false);
+                    return;
+                }
+            } catch (_) {
+                showFlash('Некорректный JSON в поле «Данные»', false);
+                return;
+            }
+        }
+        const body = {
+            clientId: parseInt(tplClient.value, 10),
+            description: document.getElementById('tpl-description').value.trim(),
+            command: document.getElementById('tpl-command').value.trim(),
+            deliveryGuarantee: document.getElementById('tpl-guarantee').value,
+            data: data
+        };
+        const r = await apiFetch(API_SAVED, {
+            method: 'POST',
+            headers: authHeaders(),
+            body: JSON.stringify(body)
+        });
+        if (r.status === 401 || r.status === 403) {
+            redirectToLogin(r.status === 403 ? 'forbidden' : '');
+            return;
+        }
+        if (!r.ok) {
+            let msg = r.status + ' ' + r.statusText;
+            try {
+                const err = await r.json();
+                if (err.message) msg = err.message;
+            } catch (_) {}
+            showFlash(msg, false);
+            return;
+        }
+        showFlash('Шаблон создан', true);
+        e.target.reset();
+        document.getElementById('tpl-guarantee').value = 'RECEIPT_CONFIRMATION';
+        await loadList();
+    });
+
+    async function removeTpl(id) {
+        if (!confirm('Удалить шаблон #' + id + '?')) return;
+        const r = await apiFetch(API_SAVED + '/' + id, { method: 'DELETE' });
+        if (r.status === 401 || r.status === 403) {
+            redirectToLogin(r.status === 403 ? 'forbidden' : '');
+            return;
+        }
+        if (!r.ok && r.status !== 204) {
+            showFlash('Удаление не удалось: ' + r.status, false);
+            return;
+        }
+        showFlash('Удалено', true);
+        await loadList();
+    }
+
+    function stopStatusPoll() {
+        if (statusPollTimer) {
+            clearInterval(statusPollTimer);
+            statusPollTimer = null;
+        }
+        sendStopPoll.disabled = true;
+        sendPollHintEl.textContent = '';
+    }
+
+    async function fetchMessageStatus(messageId) {
+        const r = await apiFetch('/producer/getMessageStatus/' + messageId);
+        if (r.status === 401 || r.status === 403) {
+            redirectToLogin(r.status === 403 ? 'forbidden' : '');
+            return null;
+        }
+        if (r.status === 404) return null;
+        if (!r.ok) return null;
+        return r.json();
+    }
+
+    function renderSendStatus(messageId, status) {
+        sendStatusPanel.style.display = 'block';
+        sendMsgIdEl.innerHTML = '<strong>ID сообщения:</strong> ' + escapeHtml(String(messageId));
+        sendDeliveryStatusEl.innerHTML =
+            '<strong>Статус доставки:</strong> <span class="' + statusBadgeClass(status) + '">' +
+            escapeHtml(status) + '</span>';
+    }
+
+    function startStatusPoll(messageId, initialStatus) {
+        stopStatusPoll();
+        renderSendStatus(messageId, initialStatus);
+        if (TERMINAL_STATUSES.has(initialStatus)) {
+            sendPollHintEl.textContent = 'Финальный статус (опрос не требуется).';
+            return;
+        }
+        sendStopPoll.disabled = false;
+        const maxMs = 120000;
+        statusPollDeadline = Date.now() + maxMs;
+        sendPollHintEl.textContent = 'Идёт опрос статуса (до ' + (maxMs / 1000) + ' с)…';
+
+        statusPollTimer = setInterval(async () => {
+            if (Date.now() > statusPollDeadline) {
+                stopStatusPoll();
+                sendPollHintEl.textContent = 'Опрос остановлен по таймауту.';
+                return;
+            }
+            const dto = await fetchMessageStatus(messageId);
+            if (!dto || dto.deliveryStatus == null) return;
+            const st = dto.deliveryStatus;
+            renderSendStatus(messageId, st);
+            if (TERMINAL_STATUSES.has(st)) {
+                stopStatusPoll();
+                sendPollHintEl.textContent = 'Достигнут финальный статус.';
+            }
+        }, 1000);
+    }
+
+    sendStopPoll.addEventListener('click', () => {
+        stopStatusPoll();
+        sendPollHintEl.textContent = 'Опрос остановлен вручную.';
+    });
+
+    async function sendTpl(savedId) {
+        const deviseId = sendTarget.value.trim();
+        if (!deviseId) {
+            showFlash('Выберите устройство-получатель', false);
+            return;
+        }
+        stopStatusPoll();
+        sendStatusPanel.style.display = 'none';
+        const r = await apiFetch(API_SAVED + '/' + savedId + '/send', {
+            method: 'POST',
+            headers: authHeaders(),
+            body: JSON.stringify({ deviseId: deviseId })
+        });
+        if (r.status === 401 || r.status === 403) {
+            redirectToLogin(r.status === 403 ? 'forbidden' : '');
+            return;
+        }
+        if (!r.ok) {
+            let msg = r.status + ' ' + r.statusText;
+            try {
+                const err = await r.json();
+                if (err.message) msg = err.message;
+            } catch (_) {}
+            showFlash(msg, false);
+            return;
+        }
+        const out = await r.json();
+        const mid = out.id;
+        const st = out.deliveryStatus || 'NOT_DELIVERED';
+        showFlash('Сообщение отправлено из шаблона, id=' + mid, true);
+        startStatusPoll(mid, st);
+    }
+
+    document.getElementById('list-refresh').addEventListener('click', () => loadList());
+    listFilterDevice.addEventListener('change', () => loadList());
+
+    (async function init() {
+        if (!(await ensureManSession())) return;
+        await loadClients();
+        await loadList();
+    })();
+</script>
+</body>
+</html>

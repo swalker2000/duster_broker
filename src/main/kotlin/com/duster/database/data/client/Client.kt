@@ -1,6 +1,7 @@
 package com.duster.database.data.client
 
 import com.duster.database.data.savedmessages.SavedMessage
+import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonProperty
 import jakarta.persistence.CascadeType
 import jakarta.persistence.Column
@@ -52,7 +53,9 @@ class Client {
 
     /**
      * Список сохраненных сообщений для клиента.
+     * Не сериализуется в JSON — иначе цикл Client ↔ SavedMessage даёт превышение глубины вложенности.
      */
+    @JsonIgnore
     @OneToMany(mappedBy = "client", cascade = [(CascadeType.ALL)])
     var savedMessage : List<SavedMessage> = emptyList()
 }
