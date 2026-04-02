@@ -223,3 +223,5 @@ Topic: `producer/request/device123`
   }
 }
 ```
+# Example of switch firmware based on esp32 (lilygo T-Relay) operating with a delivery guarantee service running over MQTT
+## https://github.com/swalker2000/duster_lilygo_relay
