@@ -1,5 +1,7 @@
 package com.duster.admin
 
+import com.duster.admin.dto.AdminSavedMessageCreateInDto
+import com.duster.admin.dto.AdminSavedMessageOutDto
 import com.duster.common.CommonMessageService
 import com.duster.database.ClientRepository
 import com.duster.database.SavedMessageRepository
@@ -92,17 +94,19 @@ class AdminSavedMessagesRestService(
         return ResponseEntity.noContent().build()
     }
 
+    /**
+     * Отправка только на устройство-владелец шаблона ([SavedMessage.client]); произвольный получатель из веб-интерфейса не допускается.
+     */
     @PostMapping("/{id}/send")
-    fun sendToDevice(
-        @PathVariable id: Int,
-        @RequestBody body: AdminSavedMessageSendInDto
-    ): ProducerMessageOutDto {
-        val target = body.deviseId.trim()
-        if (target.isEmpty()) {
-            throw ResponseStatusException(HttpStatus.BAD_REQUEST, "deviseId is required")
-        }
+    fun sendToOwnerDevice(@PathVariable id: Int): ProducerMessageOutDto {
         val sm = savedMessageRepository.findById(id).orElseThrow {
             ResponseStatusException(HttpStatus.NOT_FOUND, "SavedMessage id=$id not found")
+        }
+        val owner = sm.client
+            ?: throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Saved message has no owner client")
+        val target = owner.deviseId.trim()
+        if (target.isEmpty()) {
+            throw ResponseStatusException(HttpStatus.BAD_REQUEST, "Owner deviseId is empty")
         }
         val dto = ProducerMessageInDto().apply {
             believerGuarantee = sm.deliveryGuarantee

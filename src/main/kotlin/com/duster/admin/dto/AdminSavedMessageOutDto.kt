@@ -1,4 +1,4 @@
-package com.duster.admin
+package com.duster.admin.dto
 
 /**
  * Сохраняемый шаблон сообщения для админ-интерфейса.
@@ -11,16 +11,4 @@ data class AdminSavedMessageOutDto(
     val command: String,
     val deliveryGuarantee: String,
     val data: Map<String, Any>?
-)
-
-data class AdminSavedMessageCreateInDto(
-    val clientId: Int,
-    val description: String = "",
-    val command: String = "",
-    val deliveryGuarantee: String? = null,
-    val data: Map<String, Any>? = null
-)
-
-data class AdminSavedMessageSendInDto(
-    val deviseId: String = ""
 )

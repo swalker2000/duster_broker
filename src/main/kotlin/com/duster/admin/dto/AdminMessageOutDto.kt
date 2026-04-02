@@ -1,4 +1,4 @@
-package com.duster.admin
+package com.duster.admin.dto
 
 /**
  * Сводка сообщения для админ-интерфейса (без внутренних деталей JPA).

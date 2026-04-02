@@ -1,5 +1,6 @@
 package com.duster.admin
 
+import com.duster.admin.dto.AdminMessageOutDto
 import com.duster.database.MessageRepository
 import com.duster.database.data.message.Message
 import org.springframework.data.domain.PageRequest
