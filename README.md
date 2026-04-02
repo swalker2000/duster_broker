@@ -13,6 +13,12 @@
   - Allows interaction via both MQTT and REST API. (The documentation for it is still under development; check it via Swagger at http://localhost:8080/swagger-ui.html, and don't forget to set REST_SERVER_ADDRESS in docker-compose.yaml or application.yml.).<br>
     For example, a temperature sensor can send readings via REST, and a relay receiving the data can receive it via MQTT. Or, a device installed in a vehicle, upon entering an area with connectivity, receives a list of missed commands via REST.
 
+# Admin Panel
+Available at: `http://localhost:8080` <br>
+Default login: `admin`<br>
+Default password: `admin` <br><br>
+Allows you to send and view sent messages, and also provides the ability to configure a set of commands (saved messages) for each device and send them with a single click.
+
 ## Service Workflow (message transmission from producer to consumer (consumer ID: {deviceId}))
 
 1. Receives a message transmission command via MQTT on the topic `producer/request/{deviceId}`.  
