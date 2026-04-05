@@ -43,6 +43,10 @@ class SecurityConfiguration(
                     ).permitAll()
                     auth.requestMatchers("/admin/api/**").hasRole("MAN")
                     auth.requestMatchers("/admin/**").permitAll()
+                    if (appSecurityProperties.restAuthWhitelistIps.isNotEmpty()) {
+                        auth.requestMatchers(RestTrustedIpRequestMatcher(appSecurityProperties.restAuthWhitelistIps))
+                            .permitAll()
+                    }
                     auth.requestMatchers("/producer/**", "/consumer/**").authenticated()
                     auth.anyRequest().authenticated()
                 }

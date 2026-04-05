@@ -37,3 +37,5 @@ app:
     expiration-ms: ${JWT_EXPIRATION_MS:86400000}
   security:
     permit-all: ${APP_SECURITY_PERMIT_ALL:false}
+    # Список IP или CIDR: с них REST /producer/** и /consumer/** без JWT (пустой список — только по токену).
+    rest-auth-whitelist-ips: []
