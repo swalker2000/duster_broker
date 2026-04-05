@@ -27,6 +27,8 @@ services:
 
       # --- Rest ---
       REST_SERVER_ADDRESS: "127.0.0.1"
+      # Белый список IP/CIDR для /producer/** и /consumer/** без JWT (через запятую). Пример: 172.18.0.0/16,127.0.0.1
+      TRUSTED_REST_IPS: ${TRUSTED_REST_IPS:-}
 
       # --- Common ---
       COMMON_CHECK_NOT_DELIVERED_TIMEOUT: "60000"

@@ -43,6 +43,9 @@ class SecurityConfiguration(
                     ).permitAll()
                     auth.requestMatchers("/admin/api/**").hasRole("MAN")
                     auth.requestMatchers("/admin/**").permitAll()
+                    auth.requestMatchers(
+                        RestTrustedIpRequestMatcher(appSecurityProperties.resolvedTrustedRestIps())
+                    ).permitAll()
                     auth.requestMatchers("/producer/**", "/consumer/**").authenticated()
                     auth.anyRequest().authenticated()
                 }

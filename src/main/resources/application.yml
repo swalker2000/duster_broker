@@ -37,3 +37,8 @@ app:
     expiration-ms: ${JWT_EXPIRATION_MS:86400000}
   security:
     permit-all: ${APP_SECURITY_PERMIT_ALL:false}
+    # Список IP или CIDR: с этих адресов эндпоинты /producer/** и /consumer/** доступны без JWT.
+    # За reverse proxy клиентский адрес берётся из X-Forwarded-For / X-Real-IP (см. RestTrustedIpRequestMatcher).
+    trusted-rest-ips: []
+    # Через запятую; в docker-compose задаётся как TRUSTED_REST_IPS (см. environment сервиса duster).
+    trusted-rest-ips-csv: ${TRUSTED_REST_IPS:}
