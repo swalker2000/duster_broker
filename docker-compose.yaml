@@ -26,7 +26,7 @@ services:
       MQTT_QOS: "1"
 
       # --- Rest ---
-      REST_SERVER_ADDRESS: "127.0.0.1"
+      REST_SERVER_ADDRESS: "0.0.0.0"
 
       # --- Common ---
       COMMON_CHECK_NOT_DELIVERED_TIMEOUT: "60000"
@@ -35,8 +35,8 @@ services:
       COMMON_CONSUMER_TIMEOUT: "2000"
       COMMON_MESSAGE_SEND_TIME_CASH_COLLECTOR_RUN_PERIOD: "3600000"
 
-    #ports:
-    #  - "8080:8080"
+    ports:
+      - "8080:8080"
     restart: unless-stopped
     networks:
       - duster-net
@@ -45,7 +45,7 @@ services:
     image: postgres:16
     container_name: duster-postgres
     environment:
-      POSTGRES_DB: duster
+      POSTGRES_DB: postgres
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
     ports:
