@@ -225,3 +225,155 @@ Topic: `producer/request/device123`
 ```
 # Example of switch firmware based on esp32 (lilygo T-Relay) operating with a delivery guarantee service running over MQTT
 ## https://github.com/swalker2000/duster_lilygo_relay
+
+## Integration with OpenRemote ([https://github.com/openremote/openremote](https://github.com/openremote/openremote))
+
+# MQTT Setup
+
+OpenRemote does not support unsigned certificates, so we switch from `mqtts` to `mqtt`.
+
+1. Update the contents of the file `mqtt/docker-mqtt/mosquitto.conf`:
+
+```
+# Log to stdout
+log_dest stdout
+log_type ${LOG_TYPE}
+
+# Regular MQTT listener (without encryption)
+listener ${MQTT_PORT}
+protocol mqtt
+socket_domain ipv4
+
+# Regular WebSocket listener (without encryption)
+listener ${WEBSOCKET_PORT}
+protocol websockets
+socket_domain ipv4
+
+# Authentication
+allow_anonymous false
+password_file /mosquitto/password/passwd
+```
+
+2. Update the contents of the `docker-compose.yaml` file:
+
+```yaml
+services:
+  duster:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: duster
+    depends_on:
+      - postgres
+      - mqtt
+    environment:
+      # --- Postgres ---
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/postgres
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
+
+      # --- JPA ---
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      #SPRING_JPA_DATABASE_PLATFORM: org.hibernate.dialect.PostgreSQLDialect
+
+      # --- MQTT ---
+      # If your broker inside the container listens with TLS on 8883 — leave it as is.
+      MQTT_BROKER_URL: tcp://mqtt:${MQTT_PORT}
+      MQTT_BROKER_USERNAME: ${MQTT_BROKER_USERNAME}
+      MQTT_BROKER_PASSWORD: ${MQTT_BROKER_PASSWORD}
+      MQTT_SSL_INSECURE: "false"
+      MQTT_QOS: "1"
+
+      # --- REST ---
+      REST_SERVER_ADDRESS: "0.0.0.0"
+
+      # --- Common ---
+      COMMON_CHECK_NOT_DELIVERED_TIMEOUT: "60000"
+      COMMON_MQTT_WAIT_RESPONSE_TIMEOUT: "30000"
+      COMMON_SEND_MESSAGE_PERIOD: "2000"
+      COMMON_CONSUMER_TIMEOUT: "2000"
+      COMMON_MESSAGE_SEND_TIME_CASH_COLLECTOR_RUN_PERIOD: "3600000"
+
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
+    networks:
+      - duster-net
+
+  postgres:
+    image: postgres:16
+    container_name: duster-postgres
+    environment:
+      POSTGRES_DB: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    #ports:
+    #  - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    restart: unless-stopped
+    networks:
+      - duster-net
+
+  mqtt:
+    build:
+      context: mqtt/docker-mqtt
+      dockerfile: Dockerfile
+    image: custom-mosquitto:latest
+    restart: unless-stopped
+    ports:
+      - "${MQTT_PORT}:${MQTT_PORT}"
+      - "${WEBSOCKET_PORT}:${WEBSOCKET_PORT}"
+    volumes:
+      - ./mqtt/docker-mqtt/certs:/mosquitto/certs
+      - ./mqtt/docker-mqtt/mosquitto.conf:/mosquitto/config/mosquitto.conf
+    environment:
+      USERNAME: ${MQTT_BROKER_USERNAME}
+      PASSWORD: ${MQTT_BROKER_PASSWORD}
+      HOSTNAME: 0.0.0.0
+      LOG_TYPE: notice
+      MQTT_PORT: ${MQTT_PORT}
+      WEBSOCKET_PORT: ${WEBSOCKET_PORT}
+    networks:
+      - duster-net
+
+volumes:
+  pgdata:
+
+networks:
+  duster-net:
+    driver: bridge
+```
+
+# OpenRemote Setup
+
+1. **Create an MQTT Agent in OpenRemote**:
+
+    * Manager → Agents → Create → **MQTT Agent**
+    * Enter the host, port, username/password of the `duster_broker`.
+    * Save.
+
+2. **Configure assets and attributes**:
+
+    * Create/open your device asset.
+    * Add a writable attribute (e.g. `command` of type JSON or String).
+    * In the attribute configuration, add an **Agent Link** → select your MQTT Agent.
+    * **Publish Topic**: `producer/request/{deviceId}` (where `{deviceId}` is your device ID, e.g. `esp32-relay-01`).
+    * In the payload (via value filters / JSON mapper), send the `ProducerMessageInDto` structure:
+
+   ```json
+   {
+     "believerGuarantee": "RECEIPT_CONFIRMATION",
+     "command": "digitalWrite",
+     "data": { "pinNumber": 13, "pinValue": true }
+   }
+   ```
+
+# ESP32 Setup
+
+Basic example: [https://github.com/swalker2000/duster_lilygo_relay](https://github.com/swalker2000/duster_lilygo_relay)
+In `Secret.h` the following line must be present:
+
+```
+#define SECRET_MQTT_TLS 0
+```
