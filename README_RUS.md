@@ -193,8 +193,8 @@ Esp32 чип мигающий светодиодом по команде от б
 ## Пример прошивки коммутатора на базе esp32 (lilygo T-Relay ) работающего с сервисом гарантии доставки работающим поверх MQTT
 # https://github.com/swalker2000/duster_lilygo_relay
 
-## Интеграция с openremote (https://github.com/openremote/openremote)
-# Настройка MQTT
+# Интеграция с openremote (https://github.com/openremote/openremote)
+## Настройка MQTT
 Openremote не поддерживает не подписанные сертификаты по этому mqtts меняем на mqtt.
 1. Меняем содержание файла mqtt/docker-mqtt/mosquitto.conf 
 ```
@@ -304,7 +304,7 @@ networks:
   duster-net:
     driver: bridge
 ```
-# Настройка openremote
+## Настройка openremote
 
 1. **В OpenRemote создайте MQTT Agent**:
     - Manager → Agents → Create → **MQTT Agent**
@@ -324,7 +324,7 @@ networks:
         "data": { "pinNumber": 13, "pinValue": true }
       }
       ```
-#   Настройка ESP32
+##   Настройка ESP32
 Базовый пример : https://github.com/swalker2000/duster_lilygo_relay <br>
 В Secret.h должна быть следующая строка
 

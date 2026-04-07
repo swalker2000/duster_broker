@@ -226,9 +226,9 @@ Topic: `producer/request/device123`
 # Example of switch firmware based on esp32 (lilygo T-Relay) operating with a delivery guarantee service running over MQTT
 ## https://github.com/swalker2000/duster_lilygo_relay
 
-## Integration with OpenRemote ([https://github.com/openremote/openremote](https://github.com/openremote/openremote))
+# Integration with OpenRemote ([https://github.com/openremote/openremote](https://github.com/openremote/openremote))
 
-# MQTT Setup
+## MQTT Setup
 
 OpenRemote does not support unsigned certificates, so we switch from `mqtts` to `mqtt`.
 
@@ -345,7 +345,7 @@ networks:
     driver: bridge
 ```
 
-# OpenRemote Setup
+## OpenRemote Setup
 
 1. **Create an MQTT Agent in OpenRemote**:
 
@@ -369,7 +369,7 @@ networks:
    }
    ```
 
-# ESP32 Setup
+## ESP32 Setup
 
 Basic example: [https://github.com/swalker2000/duster_lilygo_relay](https://github.com/swalker2000/duster_lilygo_relay)
 In `Secret.h` the following line must be present:
