@@ -1,4 +1,4 @@
-# A delivery guarantee service operating over MQTT.
+# MQTT-based message broker with delivery guarantees, status tracking, and rate limiting for IoT. (There are connection examples for ESP32)
 - Stores messages like Kafka. Guarantees message delivery even if the device is offline at the time of sending.
   Can guarantee delivery as:
     - ```ONLY_LAST``` - only the last message with a selected command for a given device.
