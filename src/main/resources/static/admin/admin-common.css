@@ -98,3 +98,39 @@ tr:hover td { background: rgba(255,255,255,0.02); }
     background: var(--accent);
     color: #fff;
 }
+.header-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.75rem;
+}
+.header-row h1 { margin: 0; flex: 1 1 auto; min-width: 0; }
+.lang-switch {
+    display: flex;
+    gap: 0.25rem;
+    flex-shrink: 0;
+}
+.lang-btn {
+    padding: 0.3rem 0.55rem;
+    font-size: 0.75rem;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: var(--bg);
+    color: var(--muted);
+    cursor: pointer;
+    font-weight: 600;
+}
+.lang-btn:hover { filter: brightness(1.08); }
+.lang-btn.active {
+    background: var(--accent);
+    color: #fff;
+    border-color: var(--accent);
+}
+body.login-body { position: relative; }
+.login-lang-host {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    z-index: 2;
+}

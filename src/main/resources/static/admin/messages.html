@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Админ — сообщения</title>
+    <script src="/admin/admin-i18n.js"></script>
     <link rel="stylesheet" href="/admin/admin-common.css">
     <style>
         #messages-tbody tr.msg-row-clickable { cursor: pointer; }
@@ -12,36 +13,37 @@
         #messages-tbody tr.msg-row-selected td:first-child { box-shadow: inset 3px 0 0 var(--accent); }
     </style>
 </head>
-<body>
+<body data-i18n-document-title="messages.documentTitle">
 <header>
-    <h1>Сообщения</h1>
-    <p>Отправка на устройства (роль DEVISE) и просмотр истории. REST: <code>PUT /producer/request/…</code>, <code>GET /admin/api/messages</code></p>
-    <nav class="admin-nav" aria-label="Разделы админки">
-        <a href="/admin/clients.html">Клиенты и устройства</a>
-        <a href="/admin/messages.html" class="active">Сообщения</a>
-        <a href="/admin/saved-messages.html">Сохраняемые</a>
+    <div class="header-row">
+        <h1 data-i18n="messages.header">Сообщения</h1>
+        <div id="lang-switch"></div>
+    </div>
+    <p data-i18n-html="messages.subtitle"></p>
+    <nav class="admin-nav" data-i18n-aria-label="common.navAria">
+        <a href="/admin/clients.html" data-i18n="nav.clients">Клиенты и устройства</a>
+        <a href="/admin/messages.html" class="active" data-i18n="nav.messages">Сообщения</a>
+        <a href="/admin/saved-messages.html" data-i18n="nav.saved">Сохраняемые</a>
     </nav>
     <p id="user-line" style="margin-top:0.75rem;font-size:0.875rem;color:var(--muted);"></p>
-    <button type="button" class="secondary" id="logout-btn" style="margin-top:0.5rem;">Выйти</button>
+    <button type="button" class="secondary" id="logout-btn" style="margin-top:0.5rem;" data-i18n="common.logout">Выйти</button>
 </header>
 <main>
     <div id="flash" class="msg" role="alert"></div>
 
     <section class="card">
-        <h2>Отправка сообщения на устройство</h2>
-        <p style="color: var(--muted); font-size: 0.875rem; margin: 0 0 1rem;">
-            Устройства задаются на странице «Клиенты и устройства» (клиент с ролью <code>DEVISE</code>). Статус после отправки: <code>GET /producer/getMessageStatus/{id}</code>
-        </p>
+        <h2 data-i18n="messages.sendTitle">Отправка сообщения на устройство</h2>
+        <p style="color: var(--muted); font-size: 0.875rem; margin: 0 0 1rem;" data-i18n-html="messages.sendHint"></p>
         <form id="send-form">
             <div class="row">
                 <div>
-                    <label for="send-device">Устройство (роль DEVISE)</label>
+                    <label for="send-device" data-i18n="messages.device">Устройство (роль DEVISE)</label>
                     <select id="send-device" required>
-                        <option value="">— выберите —</option>
+                        <option value="" data-i18n="messages.choose">— выберите —</option>
                     </select>
                 </div>
                 <div>
-                    <label for="send-guarantee">Гарантия доставки</label>
+                    <label for="send-guarantee" data-i18n="messages.guarantee">Гарантия доставки</label>
                     <select id="send-guarantee">
                         <option value="RECEIPT_CONFIRMATION" selected>RECEIPT_CONFIRMATION</option>
                         <option value="ONLY_LAST">ONLY_LAST</option>
@@ -49,13 +51,13 @@
                     </select>
                 </div>
             </div>
-            <label for="send-command">Команда (command)</label>
-            <input id="send-command" required autocomplete="off" placeholder="например digitalWrite">
-            <label for="send-data">Данные (JSON-объект, необязательно)</label>
-            <textarea id="send-data" placeholder='{ "pinNumber": 13, "pinValue": true }'></textarea>
+            <label for="send-command" data-i18n="messages.command">Команда (command)</label>
+            <input id="send-command" required autocomplete="off" data-i18n-placeholder="messages.commandPh">
+            <label for="send-data" data-i18n="messages.data">Данные (JSON-объект, необязательно)</label>
+            <textarea id="send-data" data-i18n-placeholder="messages.dataPh"></textarea>
             <div class="actions">
-                <button type="submit" class="primary" id="send-btn">Отправить</button>
-                <button type="button" class="secondary" id="send-stop-poll" disabled>Остановить опрос статуса</button>
+                <button type="submit" class="primary" id="send-btn" data-i18n="messages.send">Отправить</button>
+                <button type="button" class="secondary" id="send-stop-poll" disabled data-i18n="messages.stopPoll">Остановить опрос статуса</button>
             </div>
         </form>
         <div id="send-status-panel" style="margin-top: 1rem; display: none;">
@@ -66,19 +68,17 @@
     </section>
 
     <section class="card">
-        <h2>Отправленные сообщения</h2>
-        <p style="color: var(--muted); font-size: 0.875rem; margin: 0 0 1rem;">
-            <code>GET /admin/api/messages</code> — последние записи, новые сверху. <strong>Клик по строке</strong> подставляет устройство, гарантию, команду и данные в форму отправки выше.
-        </p>
+        <h2 data-i18n="messages.sentTitle">Отправленные сообщения</h2>
+        <p style="color: var(--muted); font-size: 0.875rem; margin: 0 0 1rem;" data-i18n-html="messages.sentHint"></p>
         <div class="row" style="margin-bottom: 0.75rem;">
             <div>
-                <label for="msg-filter-device">Фильтр по устройству</label>
+                <label for="msg-filter-device" data-i18n="messages.filterDevice">Фильтр по устройству</label>
                 <select id="msg-filter-device">
-                    <option value="">Все устройства</option>
+                    <option value="" data-i18n="messages.allDevices">Все устройства</option>
                 </select>
             </div>
             <div>
-                <label for="msg-limit">Сколько записей</label>
+                <label for="msg-limit" data-i18n="messages.limit">Сколько записей</label>
                 <select id="msg-limit">
                     <option value="100">100</option>
                     <option value="200" selected>200</option>
@@ -87,31 +87,34 @@
             </div>
         </div>
         <div class="actions" style="margin-bottom: 1rem;">
-            <button type="button" class="primary" id="msg-refresh-btn">Обновить список</button>
+            <button type="button" class="primary" id="msg-refresh-btn" data-i18n="messages.refresh">Обновить список</button>
         </div>
         <div style="overflow-x: auto;">
             <table>
                 <thead>
                 <tr>
-                    <th>ID</th>
-                    <th>Устройство</th>
-                    <th>Команда</th>
-                    <th>Статус</th>
-                    <th>Гарантия</th>
-                    <th>Создано</th>
-                    <th>Доставлено</th>
-                    <th>Ошибка</th>
-                    <th>Данные</th>
+                    <th data-i18n="messages.colId">ID</th>
+                    <th data-i18n="messages.colDevice">Устройство</th>
+                    <th data-i18n="messages.colCommand">Команда</th>
+                    <th data-i18n="messages.colStatus">Статус</th>
+                    <th data-i18n="messages.colGuarantee">Гарантия</th>
+                    <th data-i18n="messages.colCreated">Создано</th>
+                    <th data-i18n="messages.colDelivered">Доставлено</th>
+                    <th data-i18n="messages.colError">Ошибка</th>
+                    <th data-i18n="messages.colData">Данные</th>
                 </tr>
                 </thead>
                 <tbody id="messages-tbody"></tbody>
             </table>
         </div>
-        <p id="messages-empty" style="color: var(--muted); display: none;">Сообщений нет (или нет подходящих под фильтр).</p>
+        <p id="messages-empty" style="color: var(--muted); display: none;" data-i18n="messages.empty">Сообщений нет</p>
     </section>
 </main>
 
 <script>
+    DusterI18n.applyI18n(document.body);
+    DusterI18n.mountLangSwitch(document.getElementById('lang-switch'));
+
     const TOKEN_KEY = 'dusterAdminJwt';
     const API_CLIENTS = '/admin/api/clients';
     const API_MESSAGES = '/admin/api/messages';
@@ -180,7 +183,7 @@
             redirectToLogin('forbidden');
             return false;
         }
-        userLine.textContent = 'Вы вошли как ' + me.deviseId + ' (MAN)';
+        userLine.textContent = DusterI18n.t('common.loggedInAs', { id: me.deviseId });
         return true;
     }
 
@@ -226,7 +229,11 @@
 
     function fillMessageFilterSelect(devices) {
         const prev = msgFilterDevice.value;
-        msgFilterDevice.innerHTML = '<option value="">Все устройства</option>';
+        msgFilterDevice.innerHTML = '';
+        const allOpt = document.createElement('option');
+        allOpt.value = '';
+        allOpt.textContent = DusterI18n.t('messages.allDevices');
+        msgFilterDevice.appendChild(allOpt);
         for (const c of devices) {
             const opt = document.createElement('option');
             opt.value = c.deviseId;
@@ -242,7 +249,7 @@
         if (devices.length === 0) {
             const opt = document.createElement('option');
             opt.value = '';
-            opt.textContent = 'Нет устройств — создайте клиента с ролью DEVISE';
+            opt.textContent = DusterI18n.t('messages.noDevise');
             sendDevice.appendChild(opt);
             sendDevice.disabled = true;
             return;
@@ -250,7 +257,7 @@
         sendDevice.disabled = false;
         const empty = document.createElement('option');
         empty.value = '';
-        empty.textContent = '— выберите —';
+        empty.textContent = DusterI18n.t('messages.choose');
         sendDevice.appendChild(empty);
         for (const c of devices) {
             const opt = document.createElement('option');
@@ -268,7 +275,7 @@
             return;
         }
         if (!r.ok) {
-            showFlash('Не удалось загрузить список клиентов: ' + r.status, false);
+            showFlash(DusterI18n.t('messages.flashClientsErr', { status: r.status }), false);
             return;
         }
         const list = await r.json();
@@ -280,7 +287,7 @@
     function formatDateTime(ms) {
         if (ms == null) return '—';
         try {
-            return new Date(ms).toLocaleString('ru-RU', { dateStyle: 'short', timeStyle: 'medium' });
+            return new Date(ms).toLocaleString(DusterI18n.getLocaleTag(), { dateStyle: 'short', timeStyle: 'medium' });
         } catch (_) {
             return String(ms);
         }
@@ -303,7 +310,7 @@
         if ([...sendDevice.options].some(o => o.value === deviseId)) return;
         const opt = document.createElement('option');
         opt.value = deviseId;
-        opt.textContent = deviseId + ' (из истории, нет среди клиентов DEVISE)';
+        opt.textContent = deviseId + DusterI18n.t('messages.fromHistory');
         sendDevice.appendChild(opt);
         sendDevice.disabled = false;
     }
@@ -328,7 +335,7 @@
             sendDataEl.value = '';
         }
         document.getElementById('send-form').scrollIntoView({ behavior: 'smooth', block: 'start' });
-        showFlash('Поля отправки заполнены из сообщения #' + m.id, true);
+        showFlash(DusterI18n.t('messages.flashFilledFrom', { id: m.id }), true);
     }
 
     function selectMessageRow(tr, m) {
@@ -349,20 +356,21 @@
             return;
         }
         if (!r.ok) {
-            showFlash('Не удалось загрузить сообщения: ' + r.status, false);
+            showFlash(DusterI18n.t('messages.flashMessagesErr', { status: r.status }), false);
             return;
         }
         const list = await r.json();
         selectedMessageRow = null;
         messagesTbody.innerHTML = '';
         messagesEmpty.style.display = list.length ? 'none' : 'block';
+        const yesWord = DusterI18n.t('common.yes');
         for (const m of list) {
             const dj = truncateDataJson(m.data);
             const tr = document.createElement('tr');
             tr.className = 'msg-row-clickable';
             tr.tabIndex = 0;
             tr.setAttribute('role', 'button');
-            tr.setAttribute('aria-label', 'Подставить в форму отправки сообщение ' + m.id);
+            tr.setAttribute('aria-label', DusterI18n.t('messages.ariaApplyRow', { id: m.id }));
             tr.innerHTML =
                 '<td>' + m.id + '</td>' +
                 '<td><code>' + escapeHtml(m.deviseId) + '</code></td>' +
@@ -371,7 +379,7 @@
                 '<td><span class="badge">' + escapeHtml(m.deliveryGuarantee) + '</span></td>' +
                 '<td>' + escapeHtml(formatDateTime(m.createdDate)) + '</td>' +
                 '<td>' + escapeHtml(formatDateTime(m.deliveredDate)) + '</td>' +
-                '<td>' + (m.deliveredError ? '<span class="badge status-warn">да</span>' : '—') + '</td>' +
+                '<td>' + (m.deliveredError ? '<span class="badge status-warn">' + escapeHtml(yesWord) + '</span>' : '—') + '</td>' +
                 '<td class="data-cell" title="' + escapeAttr(dj.title || dj.text) + '">' + escapeHtml(dj.text) + '</td>';
             tr.addEventListener('click', () => selectMessageRow(tr, m));
             tr.addEventListener('keydown', (e) => {
@@ -401,9 +409,9 @@
 
     function renderSendStatus(messageId, status) {
         sendStatusPanel.style.display = 'block';
-        sendMsgIdEl.innerHTML = '<strong>ID сообщения:</strong> ' + escapeHtml(String(messageId));
+        sendMsgIdEl.innerHTML = '<strong>' + escapeHtml(DusterI18n.t('messages.msgId')) + '</strong> ' + escapeHtml(String(messageId));
         sendDeliveryStatusEl.innerHTML =
-            '<strong>Статус доставки:</strong> <span class="' + statusBadgeClass(status) + '">' +
+            '<strong>' + escapeHtml(DusterI18n.t('messages.deliveryStatus')) + '</strong> <span class="' + statusBadgeClass(status) + '">' +
             escapeHtml(status) + '</span>';
     }
 
@@ -411,18 +419,18 @@
         stopStatusPoll();
         renderSendStatus(messageId, initialStatus);
         if (TERMINAL_STATUSES.has(initialStatus)) {
-            sendPollHintEl.textContent = 'Финальный статус (опрос не требуется).';
+            sendPollHintEl.textContent = DusterI18n.t('messages.pollFinal');
             return;
         }
         sendStopPoll.disabled = false;
         const maxMs = 120000;
         statusPollDeadline = Date.now() + maxMs;
-        sendPollHintEl.textContent = 'Идёт опрос статуса (до ' + (maxMs / 1000) + ' с)…';
+        sendPollHintEl.textContent = DusterI18n.t('messages.pollRunning', { seconds: maxMs / 1000 });
 
         statusPollTimer = setInterval(async () => {
             if (Date.now() > statusPollDeadline) {
                 stopStatusPoll();
-                sendPollHintEl.textContent = 'Опрос остановлен по таймауту. Последний показанный статус актуален на момент последнего запроса.';
+                sendPollHintEl.textContent = DusterI18n.t('messages.pollTimeout');
                 loadMessages();
                 return;
             }
@@ -432,7 +440,7 @@
             renderSendStatus(messageId, st);
             if (TERMINAL_STATUSES.has(st)) {
                 stopStatusPoll();
-                sendPollHintEl.textContent = 'Достигнут финальный статус.';
+                sendPollHintEl.textContent = DusterI18n.t('messages.pollDone');
                 loadMessages();
             }
         }, 1000);
@@ -440,18 +448,18 @@
 
     sendStopPoll.addEventListener('click', () => {
         stopStatusPoll();
-        sendPollHintEl.textContent = 'Опрос остановлен вручную.';
+        sendPollHintEl.textContent = DusterI18n.t('messages.pollStopped');
     });
 
     sendForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         if (sendDevice.disabled) {
-            showFlash('Нет устройств с ролью DEVISE. Добавьте их на странице «Клиенты и устройства».', false);
+            showFlash(DusterI18n.t('messages.flashNoDevisePage'), false);
             return;
         }
         const deviseId = sendDevice.value.trim();
         if (!deviseId) {
-            showFlash('Выберите устройство', false);
+            showFlash(DusterI18n.t('messages.flashPickDevice'), false);
             return;
         }
         const rawData = document.getElementById('send-data').value.trim();
@@ -460,11 +468,11 @@
             try {
                 data = JSON.parse(rawData);
                 if (data === null || typeof data !== 'object' || Array.isArray(data)) {
-                    showFlash('Поле «Данные» должно быть JSON-объектом {...}', false);
+                    showFlash(DusterI18n.t('messages.flashDataObject'), false);
                     return;
                 }
             } catch (_) {
-                showFlash('Некорректный JSON в поле «Данные»', false);
+                showFlash(DusterI18n.t('messages.flashBadJson'), false);
                 return;
             }
         }
@@ -500,7 +508,7 @@
             const out = await r.json();
             const mid = out.id;
             const st = out.deliveryStatus || 'NOT_DELIVERED';
-            showFlash('Сообщение создано, id=' + mid, true);
+            showFlash(DusterI18n.t('messages.flashCreated', { id: mid }), true);
             startStatusPoll(mid, st);
             loadMessages();
         } finally {

@@ -3,80 +3,87 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Админ — клиенты и устройства</title>
+    <title>Админ — клиенты</title>
+    <script src="/admin/admin-i18n.js"></script>
     <link rel="stylesheet" href="/admin/admin-common.css">
 </head>
-<body>
+<body data-i18n-document-title="clients.documentTitle">
 <header>
-    <h1>Клиенты и устройства</h1>
-    <p>CRUD для сущности <code>Client</code> — REST: <code>/admin/api/clients</code> (JWT, роль MAN)</p>
-    <nav class="admin-nav" aria-label="Разделы админки">
-        <a href="/admin/clients.html" class="active">Клиенты и устройства</a>
-        <a href="/admin/messages.html">Сообщения</a>
-        <a href="/admin/saved-messages.html">Сохраняемые</a>
+    <div class="header-row">
+        <h1 data-i18n="clients.header">Клиенты и устройства</h1>
+        <div id="lang-switch"></div>
+    </div>
+    <p data-i18n-html="clients.subtitle"></p>
+    <nav class="admin-nav" data-i18n-aria-label="common.navAria">
+        <a href="/admin/clients.html" class="active" data-i18n="nav.clients">Клиенты и устройства</a>
+        <a href="/admin/messages.html" data-i18n="nav.messages">Сообщения</a>
+        <a href="/admin/saved-messages.html" data-i18n="nav.saved">Сохраняемые</a>
     </nav>
     <p id="user-line" style="margin-top:0.75rem;font-size:0.875rem;color:var(--muted);"></p>
-    <button type="button" class="secondary" id="logout-btn" style="margin-top:0.5rem;">Выйти</button>
+    <button type="button" class="secondary" id="logout-btn" style="margin-top:0.5rem;" data-i18n="common.logout">Выйти</button>
 </header>
 <main>
     <div id="flash" class="msg" role="alert"></div>
 
     <section class="card">
-        <h2 id="form-title">Новый клиент</h2>
+        <h2 id="form-title" data-i18n="clients.formNew">Новый клиент</h2>
         <form id="client-form">
             <input type="hidden" id="edit-id" value="">
             <div class="row">
                 <div>
-                    <label for="deviseId">deviseId (уникальный)</label>
-                    <input id="deviseId" required autocomplete="off" placeholder="например device-001">
+                    <label for="deviseId" data-i18n="clients.deviseIdLabel">deviseId (уникальный)</label>
+                    <input id="deviseId" required autocomplete="off" data-i18n-placeholder="clients.deviseIdPh">
                 </div>
                 <div>
-                    <label for="password">Пароль</label>
-                    <input id="password" type="password" required autocomplete="new-password" placeholder="при создании обязателен; при правке — пусто = не менять">
+                    <label for="password" data-i18n="clients.passwordLabel">Пароль</label>
+                    <input id="password" type="password" required autocomplete="new-password" data-i18n-placeholder="clients.passwordPh">
                 </div>
             </div>
             <div class="row">
                 <div>
-                    <label for="role">Роль</label>
+                    <label for="role" data-i18n="clients.role">Роль</label>
                     <select id="role">
                         <option value="DEVISE">DEVISE</option>
                         <option value="MAN">MAN</option>
                     </select>
                 </div>
                 <div>
-                    <label for="description">Описание</label>
-                    <input id="description" required placeholder="что за устройство / пользователь">
+                    <label for="description" data-i18n="clients.description">Описание</label>
+                    <input id="description" required data-i18n-placeholder="clients.descriptionPh">
                 </div>
             </div>
             <div class="actions">
-                <button type="submit" class="primary" id="submit-btn">Создать</button>
-                <button type="button" class="secondary" id="reset-btn">Сбросить форму</button>
+                <button type="submit" class="primary" id="submit-btn" data-i18n="clients.create">Создать</button>
+                <button type="button" class="secondary" id="reset-btn" data-i18n="clients.resetForm">Сбросить форму</button>
             </div>
         </form>
     </section>
 
     <section class="card">
-        <h2>Список</h2>
+        <h2 data-i18n="clients.list">Список</h2>
         <div style="overflow-x: auto;">
             <table>
                 <thead>
                 <tr>
-                    <th>ID</th>
-                    <th>deviseId</th>
-                    <th>Пароль</th>
-                    <th>Роль</th>
-                    <th>Описание</th>
+                    <th data-i18n="clients.colId">ID</th>
+                    <th data-i18n="clients.colDeviseId">deviseId</th>
+                    <th data-i18n="clients.colPassword">Пароль</th>
+                    <th data-i18n="clients.colRole">Роль</th>
+                    <th data-i18n="clients.colDescription">Описание</th>
                     <th></th>
                 </tr>
                 </thead>
                 <tbody id="tbody"></tbody>
             </table>
         </div>
-        <p id="empty-hint" style="color: var(--muted); display: none;">Записей нет.</p>
+        <p id="empty-hint" style="color: var(--muted); display: none;" data-i18n="clients.empty">Записей нет.</p>
     </section>
 </main>
 
 <script>
+    DusterI18n.applyI18n(document.body);
+    DusterI18n.mountLangSwitch(document.getElementById('lang-switch'));
+
     const TOKEN_KEY = 'dusterAdminJwt';
     const API = '/admin/api/clients';
     const tbody = document.getElementById('tbody');
@@ -129,7 +136,7 @@
             redirectToLogin('forbidden');
             return false;
         }
-        userLine.textContent = 'Вы вошли как ' + me.deviseId + ' (MAN)';
+        userLine.textContent = DusterI18n.t('common.loggedInAs', { id: me.deviseId });
         return true;
     }
 
@@ -148,7 +155,7 @@
             return;
         }
         if (!r.ok) {
-            showFlash('Ошибка загрузки: ' + r.status, false);
+            showFlash(DusterI18n.t('clients.flashLoadErr', { status: r.status }), false);
             return;
         }
         const list = await r.json();
@@ -163,8 +170,8 @@
                 '<td><span class="badge">' + escapeHtml(c.role) + '</span></td>' +
                 '<td>' + escapeHtml(c.description) + '</td>' +
                 '<td class="table-actions">' +
-                '<button type="button" class="secondary btn-edit" data-id="' + c.id + '">Изменить</button>' +
-                '<button type="button" class="danger btn-del" data-id="' + c.id + '">Удалить</button>' +
+                '<button type="button" class="secondary btn-edit" data-id="' + c.id + '">' + escapeHtml(DusterI18n.t('clients.edit')) + '</button>' +
+                '<button type="button" class="danger btn-del" data-id="' + c.id + '">' + escapeHtml(DusterI18n.t('clients.del')) + '</button>' +
                 '</td>';
             tbody.appendChild(tr);
         }
@@ -188,8 +195,8 @@
         document.getElementById('password').required = false;
         document.getElementById('role').value = c.role;
         document.getElementById('description').value = c.description;
-        formTitle.textContent = 'Редактирование #' + c.id;
-        submitBtn.textContent = 'Сохранить';
+        formTitle.textContent = DusterI18n.t('clients.formEdit', { id: c.id });
+        submitBtn.textContent = DusterI18n.t('clients.save');
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
@@ -197,8 +204,8 @@
         editId.value = '';
         form.reset();
         document.getElementById('password').required = true;
-        formTitle.textContent = 'Новый клиент';
-        submitBtn.textContent = 'Создать';
+        formTitle.textContent = DusterI18n.t('clients.formNew');
+        submitBtn.textContent = DusterI18n.t('clients.create');
     }
 
     document.getElementById('reset-btn').addEventListener('click', resetForm);
@@ -208,7 +215,7 @@
         const id = editId.value;
         const pwd = document.getElementById('password').value;
         if (!id && !pwd) {
-            showFlash('Укажите пароль для нового клиента', false);
+            showFlash(DusterI18n.t('clients.flashNeedPassword'), false);
             return;
         }
         const body = {
@@ -241,23 +248,23 @@
             showFlash(msg, false);
             return;
         }
-        showFlash(id ? 'Сохранено' : 'Создано', true);
+        showFlash(id ? DusterI18n.t('clients.flashSaved') : DusterI18n.t('clients.flashCreated'), true);
         resetForm();
         await loadList();
     });
 
     async function removeClient(id) {
-        if (!confirm('Удалить клиента #' + id + '?')) return;
+        if (!confirm(DusterI18n.t('clients.confirmDelete', { id: id }))) return;
         const r = await apiFetch(API + '/' + id, { method: 'DELETE' });
         if (r.status === 401 || r.status === 403) {
             redirectToLogin(r.status === 403 ? 'forbidden' : '');
             return;
         }
         if (!r.ok && r.status !== 204) {
-            showFlash('Удаление не удалось: ' + r.status, false);
+            showFlash(DusterI18n.t('clients.flashDeleteFail', { status: r.status }), false);
             return;
         }
-        showFlash('Удалено', true);
+        showFlash(DusterI18n.t('clients.flashDeleted'), true);
         await loadList();
     }
 

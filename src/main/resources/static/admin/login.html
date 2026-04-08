@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Вход — админ</title>
+    <script src="/admin/admin-i18n.js"></script>
     <style>
         :root {
             --bg: #0f1419;
@@ -60,28 +61,46 @@
         button:disabled { opacity: 0.5; cursor: not-allowed; }
         .msg { display: none; padding: 0.75rem; border-radius: 6px; margin-bottom: 1rem; font-size: 0.875rem; }
         .msg.err { display: block; background: rgba(232, 93, 93, 0.15); border: 1px solid var(--danger); }
+        body.login-body { position: relative; }
+        .login-lang-host { position: absolute; top: 1rem; right: 1rem; z-index: 2; }
+        .lang-switch { display: flex; gap: 0.25rem; }
+        .lang-btn {
+            padding: 0.3rem 0.55rem;
+            font-size: 0.75rem;
+            border-radius: 6px;
+            border: 1px solid var(--border);
+            background: var(--surface);
+            color: var(--muted);
+            cursor: pointer;
+            font-weight: 600;
+        }
+        .lang-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
     </style>
 </head>
-<body>
+<body class="login-body" data-i18n-document-title="login.documentTitle">
+<div id="lang-switch" class="login-lang-host" aria-hidden="false"></div>
 <div class="card">
-    <h1>Вход в админку</h1>
-    <p>Доступ к админке (клиенты и сообщения) только для роли <strong>MAN</strong>. Тот же токен используется для REST.</p>
+    <h1 data-i18n="login.heading">Вход в админку</h1>
+    <p data-i18n-html="login.introHtml"></p>
     <div id="flash" class="msg err" role="alert"></div>
     <form id="login-form">
-        <label for="deviseId">deviseId</label>
-        <input id="deviseId" name="deviseId" required autocomplete="username" placeholder="логин клиента">
-        <label for="password">Пароль</label>
+        <label for="deviseId" data-i18n="login.deviseId">deviseId</label>
+        <input id="deviseId" name="deviseId" required autocomplete="username" data-i18n-placeholder="login.deviseIdPlaceholder">
+        <label for="password" data-i18n="login.password">Пароль</label>
         <input id="password" name="password" type="password" required autocomplete="current-password">
-        <button type="submit" id="submit">Войти</button>
+        <button type="submit" id="submit" data-i18n="login.signIn">Войти</button>
     </form>
 </div>
 <script>
+    DusterI18n.applyI18n(document.body);
+    DusterI18n.mountLangSwitch(document.getElementById('lang-switch'));
+
     const TOKEN_KEY = 'dusterAdminJwt';
     const flash = document.getElementById('flash');
     const params = new URLSearchParams(location.search);
     if (params.get('reason') === 'forbidden') {
         flash.style.display = 'block';
-        flash.textContent = 'Веб-интерфейс доступен только пользователям с ролью MAN.';
+        flash.textContent = DusterI18n.t('login.errForbidden');
     }
 
     (async function checkExisting() {
@@ -116,12 +135,12 @@
             const data = await r.json().catch(() => ({}));
             if (!r.ok) {
                 flash.style.display = 'block';
-                flash.textContent = data.message || ('Ошибка: ' + r.status);
+                flash.textContent = data.message || DusterI18n.t('common.errorStatus', { status: r.status });
                 return;
             }
             if (data.role !== 'MAN') {
                 flash.style.display = 'block';
-                flash.textContent = 'Вход в веб-интерфейс разрешён только роли MAN. Для REST используйте POST /auth/login и заголовок Authorization.';
+                flash.textContent = DusterI18n.t('login.errManOnlyWeb');
                 return;
             }
             sessionStorage.setItem(TOKEN_KEY, data.accessToken);
