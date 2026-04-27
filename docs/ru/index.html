@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Duster Broker — MQTT брокер с гарантией доставки</title>
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+<div class="lang-switch">
+    <a href="../">🏠 Главная</a>
+    <a href="../en/">🇬🇧 English</a>
+</div>
+<header>
+    <h1>🚀 Duster Broker</h1>
+    <p>MQTT-брокер с гарантией доставки, отслеживанием статусов и ограничением скорости для IoT</p>
+</header>
+<nav>
+    <a href="#about">О проекте</a>
+    <a href="#features">Возможности</a>
+    <a href="#workflow">Принцип работы</a>
+    <a href="#quickstart">Быстрый старт</a>
+    <a href="#esp32">Пример для ESP32</a>
+    <a href="#openremote">OpenRemote</a>
+</nav>
+<div class="container">
+    <section id="about">
+        <h2>📖 О проекте</h2>
+        <p><strong>Duster Broker</strong> — это промежуточный слой над MQTT, который гарантирует доставку сообщений IoT-устройствам даже при временной потере связи. Сообщения сохраняются в базе данных (как в Kafka) и доставляются, когда устройство снова в сети.</p>
+        <p>Стек: Kotlin + Spring Boot, PostgreSQL, Docker.</p>
+    </section>
+    <section id="features">
+        <h2>✨ Возможности</h2>
+        <ul>
+            <li><strong>Гарантии доставки:</strong> <code>ONLY_LAST</code> (только последнее), <code>RECEIPT_CONFIRMATION</code> (все сообщения), <code>NO</code> (без гарантии).</li>
+            <li><strong>Контроль потока:</strong> ограничение интервала отправки, чтобы не переполнить буфер устройства.</li>
+            <li><strong>Отслеживание статусов:</strong> <code>NOT_DELIVERED</code>, <code>DELIVERED</code>, <code>COMPLETED</code>, <code>COMPLETED_WITH_ERROR</code>.</li>
+            <li><strong>Двойной интерфейс:</strong> MQTT + REST API (документация через Swagger).</li>
+            <li><strong>Админ-панель:</strong> <code>http://localhost:8080</code> (логин/пароль: <code>admin/admin</code>).</li>
+        </ul>
+    </section>
+    <section id="workflow">
+        <h2>🔄 Принцип работы</h2>
+        <ol>
+            <li>Продюсер отправляет JSON <code>ProducerMessageInDto</code> в топик <code>producer/request/{deviceId}</code>.</li>
+            <li>Создаётся <code>ConsumerMessageOutDto</code> с уникальным ID.</li>
+            <li>Сообщение отправляется потребителю в топик <code>consumer/request/{deviceId}</code>.</li>
+            <li>Если гарантия не <code>NO</code>, ожидается ответ <code>ConsumerMessageInDto</code> в <code>consumer/response/{deviceId}</code>.</li>
+            <li>При таймауте — повторная отправка.</li>
+            <li>Продюсер получает обновления статуса в <code>producer/response/{producerDeviceId}</code>.</li>
+        </ol>
+    </section>
+    <section id="quickstart">
+        <h2>⚡ Быстрый старт</h2>
+        <h3>Docker Compose</h3>
+        <pre>
+git clone https://github.com/swalker2000/duster_broker.git
+cd duster_broker
+# Создайте .env файл с:
+# MQTT_BROKER_USERNAME=your_user
+# MQTT_BROKER_PASSWORD=your_pass
+# WEBSOCKET_PORT=9443
+# MQTT_PORT=8883
+docker compose up -d</pre>
+        <p>Сервисы: MQTT-брокер, PostgreSQL, сам Duster.</p>
+        <h3>JAR-файл</h3>
+        <pre>
+gradle build
+cp build/libs/duster-*.jar .
+cp src/main/resources/application.yaml .
+# Настройте application.yaml
+java -jar duster-0.0.1-SNAPSHOT.jar</pre>
+    </section>
+    <section id="esp32">
+        <h2>💡 Пример для ESP32</h2>
+        <p>Пример потребителя на ESP32: <a href="https://github.com/swalker2000/duster_esp32_example" target="_blank">duster_esp32_example</a>.</p>
+        <pre>
+#define SSID "MY_SSID"
+#define WIFI_PASS "MY_WIFI_PASS"
+#define URL "MQTT_URL"
+#define PORT 8883
+#define MQTT_USERNAME "username"
+#define MQTT_PASS "password"</pre>
+        <p>Устройство мигает светодиодом по командам из топика <code>consumer/request/device123</code>.</p>
+    </section>
+    <section id="openremote">
+        <h2>🔗 Интеграция с OpenRemote</h2>
+        <p><a href="https://github.com/openremote/openremote" target="_blank">OpenRemote</a> не поддерживает самоподписанные сертификаты, поэтому переключите MQTT на незашифрованный режим.</p>
+        <p>Создайте MQTT Agent, настройте атрибуты устройства и публикуйте <code>ProducerMessageInDto</code> в топик <code>producer/request/{deviceId}</code>.</p>
+    </section>
+</div>
+<div class="footer">
+    <p>🗄️ Репозиторий: <a href="https://github.com/swalker2000/duster_broker" target="_blank">github.com/swalker2000/duster_broker</a></p>
+</div>
+</body>
+</html>

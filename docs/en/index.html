@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Duster Broker — MQTT Delivery Guarantee Service</title>
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+<div class="lang-switch">
+    <a href="../">🏠 Home</a>
+    <a href="../ru/">🇷🇺 Русский</a>
+</div>
+<header>
+    <h1>🚀 Duster Broker</h1>
+    <p>MQTT-based message broker with delivery guarantees, status tracking, and rate limiting for IoT</p>
+</header>
+<nav>
+    <a href="#about">About</a>
+    <a href="#features">Features</a>
+    <a href="#workflow">Workflow</a>
+    <a href="#quickstart">Quick Start</a>
+    <a href="#esp32">ESP32 Example</a>
+    <a href="#openremote">OpenRemote</a>
+</nav>
+<div class="container">
+    <section id="about">
+        <h2>📖 About</h2>
+        <p><strong>Duster Broker</strong> is an MQTT overlay that guarantees message delivery to IoT devices even during offline periods. Messages are stored in a database (like Kafka) and delivered when the device reconnects.</p>
+        <p>Stack: Kotlin + Spring Boot, PostgreSQL, Docker.</p>
+    </section>
+    <section id="features">
+        <h2>✨ Features</h2>
+        <ul>
+            <li><strong>Delivery guarantees:</strong> <code>ONLY_LAST</code>, <code>RECEIPT_CONFIRMATION</code>, <code>NO</code>.</li>
+            <li><strong>Rate limiting:</strong> prevents buffer overflow on constrained devices.</li>
+            <li><strong>Status tracking:</strong> <code>NOT_DELIVERED</code>, <code>DELIVERED</code>, <code>COMPLETED</code>, <code>COMPLETED_WITH_ERROR</code>.</li>
+            <li><strong>Dual interface:</strong> MQTT + REST API (Swagger docs at <code>/swagger-ui.html</code>).</li>
+            <li><strong>Admin panel:</strong> <code>http://localhost:8080</code> (login/password: <code>admin/admin</code>).</li>
+        </ul>
+    </section>
+    <section id="workflow">
+        <h2>🔄 Workflow</h2>
+        <ol>
+            <li>Producer sends <code>ProducerMessageInDto</code> to <code>producer/request/{deviceId}</code>.</li>
+            <li>A <code>ConsumerMessageOutDto</code> with a unique ID is created.</li>
+            <li>The message is published to <code>consumer/request/{deviceId}</code>.</li>
+            <li>If guarantee is not <code>NO</code>, the service waits for <code>ConsumerMessageInDto</code> on <code>consumer/response/{deviceId}</code>.</li>
+            <li>On timeout, the message is resent.</li>
+            <li>Status updates are sent to the producer on <code>producer/response/{producerDeviceId}</code>.</li>
+        </ol>
+    </section>
+    <section id="quickstart">
+        <h2>⚡ Quick Start</h2>
+        <h3>Docker Compose</h3>
+        <pre>
+git clone https://github.com/swalker2000/duster_broker.git
+cd duster_broker
+# Create .env file with:
+# MQTT_BROKER_USERNAME=your_user
+# MQTT_BROKER_PASSWORD=your_pass
+# WEBSOCKET_PORT=9443
+# MQTT_PORT=8883
+docker compose up -d</pre>
+        <h3>JAR File</h3>
+        <pre>
+gradle build
+cp build/libs/duster-*.jar .
+cp src/main/resources/application.yaml .
+# Edit application.yaml
+java -jar duster-0.0.1-SNAPSHOT.jar</pre>
+    </section>
+    <section id="esp32">
+        <h2>💡 ESP32 Example</h2>
+        <p>Consumer example: <a href="https://github.com/swalker2000/duster_esp32_example" target="_blank">duster_esp32_example</a>.</p>
+        <pre>
+#define SSID "MY_SSID"
+#define WIFI_PASS "MY_WIFI_PASS"
+#define URL "MQTT_URL"
+#define PORT 8883
+#define MQTT_USERNAME "username"
+#define MQTT_PASS "password"</pre>
+        <p>The ESP32 blinks an LED on commands from <code>consumer/request/device123</code>.</p>
+    </section>
+    <section id="openremote">
+        <h2>🔗 OpenRemote Integration</h2>
+        <p><a href="https://github.com/openremote/openremote" target="_blank">OpenRemote</a> requires insecure MQTT (no TLS). Create an MQTT Agent, configure device attributes, and publish <code>ProducerMessageInDto</code> to <code>producer/request/{deviceId}</code>.</p>
+    </section>
+</div>
+<div class="footer">
+    <p>🗄️ Repository: <a href="https://github.com/swalker2000/duster_broker" target="_blank">github.com/swalker2000/duster_broker</a></p>
+</div>
+</body>
+</html>

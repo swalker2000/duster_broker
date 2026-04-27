@@ -1,0 +1,21 @@
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f2f5; color: #333; line-height: 1.6; }
+.container { max-width: 960px; margin: 0 auto; padding: 20px; }
+header { background: #16213e; color: white; padding: 30px 0; text-align: center; }
+header h1 { font-size: 2.5rem; margin-bottom: 10px; }
+header p { font-size: 1.2rem; opacity: 0.9; }
+nav { background: #0f3460; display: flex; justify-content: center; flex-wrap: wrap; }
+nav a { color: white; text-decoration: none; padding: 14px 20px; display: inline-block; transition: background 0.3s; }
+nav a:hover { background: #e94560; }
+section { background: white; margin: 20px 0; padding: 30px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+h2 { color: #16213e; margin-bottom: 15px; border-bottom: 2px solid #e94560; padding-bottom: 8px; }
+pre { background: #2d3436; color: #dfe6e9; padding: 15px; border-radius: 6px; overflow-x: auto; font-size: 0.9rem; margin: 15px 0; }
+code { background: #eee; padding: 2px 6px; border-radius: 4px; font-size: 0.9em; }
+a { color: #e94560; }
+.footer { text-align: center; padding: 20px; color: #666; font-size: 0.9rem; }
+.lang-switch { text-align: right; padding: 10px 20px; background: white; }
+.lang-switch a { margin-left: 10px; }
+@media (max-width: 600px) {
+    header h1 { font-size: 1.8rem; }
+    nav a { padding: 10px; font-size: 0.9rem; }
+}
