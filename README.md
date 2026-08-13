@@ -10,7 +10,7 @@
     - ```DELIVERED``` - the message was delivered.
     - ```COMPLETED``` - the task sent in the message was completed successfully.
     - ```COMPLETED_WITH_ERROR``` - the task sent in the message was not completed or was completed with an error.
-  - Allows interaction via both MQTT and REST API. (The documentation for it is still under development; check it via Swagger at http://localhost:8080/swagger-ui.html, and don't forget to set REST_SERVER_ADDRESS in docker-compose.yaml or application.yml.).<br>
+  - Allows interaction via both MQTT and REST API. Documentation: [instructions/restapi/REST_API.md](instructions/restapi/REST_API.md); interactive spec — [Swagger UI](http://localhost:8080/swagger-ui.html). Don't forget to set `REST_SERVER_ADDRESS` in `docker-compose.yaml` or `application.yml`.<br>
     For example, a temperature sensor can send readings via REST, and a relay receiving the data can receive it via MQTT. Or, a device installed in a vehicle, upon entering an area with connectivity, receives a list of missed commands via REST.
 
 # Admin Panel
