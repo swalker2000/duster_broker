@@ -6,6 +6,7 @@ import com.duster.security.JwtService
 import com.duster.security.auth.dto.Credentials
 import com.duster.security.auth.dto.Decision
 import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.security.SecurityRequirements
 import org.springframework.http.HttpStatus
 import org.springframework.security.core.Authentication
 import org.springframework.security.crypto.password.PasswordEncoder
@@ -35,6 +36,8 @@ class AuthController(
 
     data class MeResponse(val deviseId: String, val role: String)
 
+    @SecurityRequirements
+    @Operation(summary = "Получить JWT (accessToken) по deviseId и password")
     @PostMapping("/login")
     fun login(@RequestBody body: LoginRequest): LoginResponse {
         val deviseId = body.deviseId.trim()
@@ -65,6 +68,7 @@ class AuthController(
      * Есть ли клиент с подобными логином и паролем.
      * @return true если есть false если нет.
      */
+    @SecurityRequirements
     @Operation(summary = "Is client with given credentials enabled.")
     @PostMapping("/isClientEnabled")
     fun isClientEnabled(@RequestBody credentials: Credentials): Decision {
