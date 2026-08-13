@@ -10,7 +10,7 @@
     - ```DELIVERED``` - сообщение доставлено.
     - ```COMPLETED``` - задача, отправленная в сообщении, выполнена.
     - ```COMPLETED_WITH_ERROR``` - задача, отправленная в сообщении, не выполнена или выполнена с ошибкой.
-- в качестве несущего протокола использует MQTT и REST API (рекомендуется как основной. Документация: [instructions/restapi/REST_API_RUS.md](instructions/restapi/REST_API_RUS.md); интерактивная спецификация — [Swagger UI](http://localhost:8080/swagger-ui.html)[instructions/swagger/SWAGGER_AUTH_RUS.md](instructions/swagger/SWAGGER_AUTH_RUS.md)). Не забудь выставить `REST_SERVER_ADDRESS` в `docker-compose.yaml` или `application.yml`.<br>
+- в качестве несущего протокола использует MQTT и REST API (рекомендуется как основной. Документация: [instructions/restapi/REST_API_RUS.md](instructions/restapi/REST_API_RUS.md); интерактивная спецификация — [Swagger UI](http://localhost:8080/swagger-ui.html) [instructions/swagger/SWAGGER_AUTH_RUS.md](instructions/swagger/SWAGGER_AUTH_RUS.md)). Не забудь выставить `REST_SERVER_ADDRESS` в `docker-compose.yaml` или `application.yml`.<br>
   К примеру датчик температуры может отправлять показания по REST, а реле принимающее данные будет получать их по MQTT. Или же устройство, установленное в транспортном средстве, попадая в область, где ловит связь, получает по REST список пропущенных команд.
 # Админка  
 Доступна по адресу: `http://localhost:8080` <br>
