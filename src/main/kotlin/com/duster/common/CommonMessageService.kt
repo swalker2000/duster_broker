@@ -99,7 +99,7 @@ val publisher = CommonPublisher
     {
         if (consumerMessageInDto.deliveryStatus!!.canReceiveFromConsumer) {
             messageStatusChangeHandler.updateDeliveryStatus(
-                consumerMessageInDto.id,
+                consumerMessageInDto.id.toInt(),
                 consumerMessageInDto.deliveryStatus!!,
                 Date(System.currentTimeMillis())
             )

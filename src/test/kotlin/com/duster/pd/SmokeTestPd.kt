@@ -157,7 +157,7 @@ class SmokeTestPd {
             assertEquals(13, (msg.data?.get("pinNumber") as? Number)?.toInt())
             assertEquals(true, msg.data?.get("pinValue"))
 
-            val messageId = msg.id.toInt()
+            val messageId = msg.id
             consumer.sendResponse(ConsumerMessageInDto(id = messageId).apply {
                 deliveryStatus = DeliveryStatus.DELIVERED
             })
@@ -210,7 +210,7 @@ class SmokeTestPd {
             })
             assertTrue(latchMessage.await(10, TimeUnit.SECONDS), "1. Сообщение должно быть отправлено")
             val msg = receivedMessage!!
-            val messageId = msg.id.toInt()
+            val messageId = msg.id
 
             consumer.sendResponse(ConsumerMessageInDto(id = messageId).apply {
                 deliveryStatus = DeliveryStatus.DELIVERED
