@@ -6,7 +6,8 @@ import com.duster.duster_protocol.messagefactory.DbpMessageType
 import com.duster.duster_protocol.messagefactory.StandardBytes
 import com.duster.transport.data.dto.consumer.ConsumerMessageInDto
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.Assertions.assertNotNull
+import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Test
 
 class ConsumerInByteArrayGeneratorTest {
@@ -28,9 +29,9 @@ class ConsumerInByteArrayGeneratorTest {
             ConsumerInByteArrayGenerator.generateByteArray(original).map { it.toChar() }
         )
 
-        assertTrue(parsed.isPresent)
-        assertEquals(original.id, parsed.get().id)
-        assertEquals(original.deliveryStatus, parsed.get().deliveryStatus)
+        assertNotNull(parsed)
+        assertEquals(original.id, parsed!!.id)
+        assertEquals(original.deliveryStatus, parsed.deliveryStatus)
     }
 
     @Test
@@ -43,8 +44,8 @@ class ConsumerInByteArrayGeneratorTest {
 
         for (status in accepted) {
             val result = ConsumerInByteArrayGenerator.parseByteArray(buildInFrame(7, status))
-            assertTrue(result.isPresent, "expected present for $status")
-            assertEquals(status, result.get().deliveryStatus)
+            assertNotNull(result, "expected present for $status")
+            assertEquals(status, result!!.deliveryStatus)
         }
     }
 
@@ -58,7 +59,7 @@ class ConsumerInByteArrayGeneratorTest {
 
         for (status in rejected) {
             val result = ConsumerInByteArrayGenerator.parseByteArray(buildInFrame(7, status))
-            assertTrue(result.isEmpty, "expected empty for $status")
+            assertNull(result, "expected null for $status")
         }
     }
 
@@ -68,9 +69,9 @@ class ConsumerInByteArrayGeneratorTest {
             buildInFrame(0, DeliveryStatus.COMPLETED)
         )
 
-        assertTrue(result.isPresent)
-        assertEquals(0, result.get().id)
-        assertEquals(DeliveryStatus.COMPLETED, result.get().deliveryStatus)
+        assertNotNull(result)
+        assertEquals(0, result!!.id)
+        assertEquals(DeliveryStatus.COMPLETED, result.deliveryStatus)
     }
 
     @Test
@@ -79,7 +80,7 @@ class ConsumerInByteArrayGeneratorTest {
         val crcIndex = frame.size - 3
         frame[crcIndex] = ((frame[crcIndex].code xor 0xFF) and 0xFF).toChar()
 
-        assertTrue(ConsumerInByteArrayGenerator.parseByteArray(frame).isEmpty)
+        assertNull(ConsumerInByteArrayGenerator.parseByteArray(frame))
     }
 
     @Test
@@ -87,7 +88,7 @@ class ConsumerInByteArrayGeneratorTest {
         val frame = buildInFrame(1, DeliveryStatus.DELIVERED).toMutableList()
         frame[1] = DbpMessageType.TAKE_MESSAGE.code.toChar()
 
-        assertTrue(ConsumerInByteArrayGenerator.parseByteArray(frame).isEmpty)
+        assertNull(ConsumerInByteArrayGenerator.parseByteArray(frame))
     }
 
     @Test
@@ -97,16 +98,16 @@ class ConsumerInByteArrayGeneratorTest {
         val noStart = valid.toMutableList().also { it[0] = 2.toChar() }
         val noStop = valid.toMutableList().also { it[it.lastIndex] = 2.toChar() }
 
-        assertTrue(ConsumerInByteArrayGenerator.parseByteArray(noStart).isEmpty)
-        assertTrue(ConsumerInByteArrayGenerator.parseByteArray(noStop).isEmpty)
+        assertNull(ConsumerInByteArrayGenerator.parseByteArray(noStart))
+        assertNull(ConsumerInByteArrayGenerator.parseByteArray(noStop))
     }
 
     @Test
     fun parse_rejectsTooShortFrame() {
-        assertTrue(
+        assertNull(
             ConsumerInByteArrayGenerator.parseByteArray(
                 listOf(StandardBytes.START_BYTE.toChar(), StandardBytes.STOP_BYTE.toChar())
-            ).isEmpty
+            )
         )
     }
 
@@ -121,7 +122,7 @@ class ConsumerInByteArrayGeneratorTest {
                 listOf(StandardBytes.STOP_BYTE)
             ).map { it.toChar() }
 
-        assertTrue(ConsumerInByteArrayGenerator.parseByteArray(frame).isEmpty)
+        assertNull(ConsumerInByteArrayGenerator.parseByteArray(frame))
     }
 
     private fun sampleIn(): ConsumerMessageInDto =

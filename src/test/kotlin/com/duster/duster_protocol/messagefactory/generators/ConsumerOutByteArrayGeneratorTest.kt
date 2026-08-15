@@ -5,6 +5,8 @@ import com.duster.duster_protocol.messagefactory.DbpMessageType
 import com.duster.duster_protocol.messagefactory.StandardBytes
 import com.duster.transport.data.dto.consumer.ConsumerMessageOutDto
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNotNull
+import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 
@@ -27,12 +29,12 @@ class ConsumerOutByteArrayGeneratorTest {
             ConsumerOutByteArrayGenerator.generateByteArray(original).map { it.toChar() }
         )
 
-        assertTrue(parsed.isPresent)
-        assertEquals(original.id, parsed.get().id)
-        assertEquals(original.currentTimestamp, parsed.get().currentTimestamp)
-        assertEquals(original.command, parsed.get().command)
-        assertEquals(original.believerGuarantee, parsed.get().believerGuarantee)
-        assertEquals(original.data!!["x"], (parsed.get().data!!["x"] as Number).toInt())
+        assertNotNull(parsed)
+        assertEquals(original.id, parsed!!.id)
+        assertEquals(original.currentTimestamp, parsed.currentTimestamp)
+        assertEquals(original.command, parsed.command)
+        assertEquals(original.believerGuarantee, parsed.believerGuarantee)
+        assertEquals(original.data!!["x"], (parsed.data!!["x"] as Number).toInt())
     }
 
     @Test
@@ -43,8 +45,8 @@ class ConsumerOutByteArrayGeneratorTest {
             ConsumerOutByteArrayGenerator.generateByteArray(original).map { it.toChar() }
         )
 
-        assertTrue(parsed.isPresent)
-        assertTrue(parsed.get().data!!.isEmpty())
+        assertNotNull(parsed)
+        assertTrue(parsed!!.data!!.isEmpty())
     }
 
     @Test
@@ -81,8 +83,8 @@ class ConsumerOutByteArrayGeneratorTest {
             ConsumerOutByteArrayGenerator.generateByteArray(original).map { it.toChar() }
         )
 
-        assertTrue(parsed.isPresent)
-        assertEquals("", parsed.get().command)
+        assertNotNull(parsed)
+        assertEquals("", parsed!!.command)
     }
 
     @Test
@@ -90,9 +92,7 @@ class ConsumerOutByteArrayGeneratorTest {
         val frame = ConsumerOutByteArrayGenerator.generateByteArray(sampleOut()).toMutableList()
         frame[1] = DbpMessageType.MESSAGE_RECEIVED.code
 
-        assertTrue(
-            ConsumerOutByteArrayGenerator.parseByteArray(frame.map { it.toChar() }).isEmpty
-        )
+        assertNull(ConsumerOutByteArrayGenerator.parseByteArray(frame.map { it.toChar() }))
     }
 
     @Test
@@ -101,17 +101,15 @@ class ConsumerOutByteArrayGeneratorTest {
         val crcIndex = frame.size - 3
         frame[crcIndex] = frame[crcIndex] xor 0xFF
 
-        assertTrue(
-            ConsumerOutByteArrayGenerator.parseByteArray(frame.map { it.toChar() }).isEmpty
-        )
+        assertNull(ConsumerOutByteArrayGenerator.parseByteArray(frame.map { it.toChar() }))
     }
 
     @Test
     fun parse_rejectsTooShortFrame() {
-        assertTrue(
+        assertNull(
             ConsumerOutByteArrayGenerator.parseByteArray(
                 listOf(StandardBytes.START_BYTE.toChar(), StandardBytes.STOP_BYTE.toChar())
-            ).isEmpty
+            )
         )
     }
 
@@ -122,8 +120,8 @@ class ConsumerOutByteArrayGeneratorTest {
         val noStart = valid.toMutableList().also { it[0] = 2.toChar() }
         val noStop = valid.toMutableList().also { it[it.lastIndex] = 2.toChar() }
 
-        assertTrue(ConsumerOutByteArrayGenerator.parseByteArray(noStart).isEmpty)
-        assertTrue(ConsumerOutByteArrayGenerator.parseByteArray(noStop).isEmpty)
+        assertNull(ConsumerOutByteArrayGenerator.parseByteArray(noStart))
+        assertNull(ConsumerOutByteArrayGenerator.parseByteArray(noStop))
     }
 
     private fun sampleOut(): ConsumerMessageOutDto =

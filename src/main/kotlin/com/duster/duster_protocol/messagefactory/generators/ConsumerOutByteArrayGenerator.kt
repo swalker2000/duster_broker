@@ -6,7 +6,6 @@ import com.duster.duster_protocol.messagefactory.DbpMessageType
 import com.duster.transport.data.dto.consumer.ConsumerMessageOutDto
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
-import java.util.Optional
 
 /**
  *  Генератор сообщений от брокера, нам консьюмеру.
@@ -18,7 +17,7 @@ object ConsumerOutByteArrayGenerator : ByteArrayGenerator<ConsumerMessageOutDto>
     private val objectMapper = jacksonObjectMapper()
 
     /** id(8) + ts(8) + cmdLen(2) + guarantee(1); command и data переменной длины */
-    private const val MIN_PAYLOAD_SIZE: Int = 8 + 8 + 2 + 1
+    override val MIN_PAYLOAD_SIZE: Int = 8 + 8 + 2 + 1
 
     /**
      * Преобразует объект ConsumerMessageOutDto в массив байт который в дальнейшем будет завернут в еще один слой и передан по протоколу duster_broker.
@@ -43,22 +42,16 @@ object ConsumerOutByteArrayGenerator : ByteArrayGenerator<ConsumerMessageOutDto>
     }
 
     /**
-     * Преобразует массив байт брокера в ConsumerMessageOutDto.
-     * Кадр: START | TYPE | escape(payload) | CRC16_HI | CRC16_LO | STOP
-     * @return Optional.empty() если массив байт не корректный и его невозможно превратить в сообщение.
+     * Преобразует массив байт полезной нагрузки в ConsumerMessageOutDto.
+     * @return null если payload некорректный.
      */
-    override fun parseByteArray(message: List<Char>): Optional<ConsumerMessageOutDto> {
-        val payload = extractPayload(message) ?: return Optional.empty()
-        if (payload.size < MIN_PAYLOAD_SIZE) {
-            return Optional.empty()
-        }
-
+    override fun parsePayload(payload: List<Int>): ConsumerMessageOutDto? {
         val id = getLong(payload, 0)
         val currentTimestamp = getLong(payload, 8)
         val commandLen = getUnsignedShort(payload, 16)
         val commandEnd = 18 + commandLen
         if (commandEnd + 1 > payload.size) {
-            return Optional.empty()
+            return null
         }
 
         val command = payload.subList(18, commandEnd)
@@ -68,7 +61,7 @@ object ConsumerOutByteArrayGenerator : ByteArrayGenerator<ConsumerMessageOutDto>
         val guaranteeOrdinal = payload[commandEnd]
         val guarantees = DeliveryGuarantee.entries
         if (guaranteeOrdinal !in guarantees.indices) {
-            return Optional.empty()
+            return null
         }
 
         val dataBytes = payload.subList(commandEnd + 1, payload.size)
@@ -78,16 +71,14 @@ object ConsumerOutByteArrayGenerator : ByteArrayGenerator<ConsumerMessageOutDto>
         val data: Map<String, Any> = try {
             objectMapper.readValue(dataJson)
         } catch (_: Exception) {
-            return Optional.empty()
+            return null
         }
 
-        return Optional.of(
-            ConsumerMessageOutDto(id = id).apply {
-                this.currentTimestamp = currentTimestamp
-                this.command = command
-                this.believerGuarantee = guarantees[guaranteeOrdinal]
-                this.data = data
-            }
-        )
+        return ConsumerMessageOutDto(id = id).apply {
+            this.currentTimestamp = currentTimestamp
+            this.command = command
+            this.believerGuarantee = guarantees[guaranteeOrdinal]
+            this.data = data
+        }
     }
 }

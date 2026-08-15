@@ -1,19 +1,27 @@
 package com.duster.duster_protocol.messagefactory
 
-import java.util.Optional
-
 /**
  * Генератор/парсер для одного конкретного типа <T> сообщений в соответсвии с протоколом duster_broker.
  * @param dbpMessageType тип сообщений, с которыми работает данный генератор.
  */
-abstract class ByteArrayGenerator<T>(private val dbpMessageType: DbpMessageType) {
+abstract class ByteArrayGenerator<T : Any>(private val dbpMessageType: DbpMessageType) {
+
+    /** Минимальный размер полезной нагрузки (у переменных сообщений фактический size может быть больше). */
+    protected abstract val MIN_PAYLOAD_SIZE: Int
 
 
     /**
-     * Преобразует объект T  в массив байт который в дальнейшем будет завернут в еще один слой и передан по протоколу duster_broker.
+     * Преобразует объект T в массив байт который в дальнейшем будет завернут в еще один слой и передан по протоколу duster_broker.
      *  - ВНИМАНИЕ: транспортные байты (стартовый, стоповый, экран) передаются не здесь! Здесь просто преобразуем объект сообщения в массив байт.
      */
     protected abstract fun generatePayload(message: T) : List<Int>
+
+    /**
+     * Парсит массив байт полезной нагрузки (без транспортных байтов) сообщения в объект T.
+     *  - ВНИМАНИЕ: транспортные байты (стартовый, стоповый, экран) парсятся не здесь! Здесь просто преобразуем массив байт в объект.
+     * @return null если payload некорректный.
+     */
+    protected abstract fun parsePayload(payload: List<Int>) : T?
 
 
     /**
@@ -27,9 +35,17 @@ abstract class ByteArrayGenerator<T>(private val dbpMessageType: DbpMessageType)
 
     /**
      * Преобразует массив байт ответа объект.
-     * @return Optional.empty() если массив байт не корректный и его невозможно превратить в сообщение.
+     * @return null если массив байт не корректный и его невозможно превратить в сообщение.
      */
-    abstract fun parseByteArray(message: List<Char>) : Optional<T>
+    fun parseByteArray(message: List<Char>) : T?
+    {
+        val payload = extractPayload(message) ?: return null
+
+        if (payload.size < MIN_PAYLOAD_SIZE) {
+            return null
+        }
+        return parsePayload(payload)
+    }
 
 
 
