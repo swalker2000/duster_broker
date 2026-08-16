@@ -19,7 +19,7 @@ class Message {
      */
     @Id
     @GeneratedValue
-    var id : Int = 0
+    var id : Long = 0
 
     //------------Данные получателя (consumer)-----------
 
@@ -40,7 +40,7 @@ class Message {
      * WARN : брокер не проверяет его уникальность.
      */
     @Column
-    var tmpId : Int? = null
+    var tmpId : Long? = null
 
     /**
      * Id producer отправившего сообщение. Если у producer есть deviseId, то использовать нужно его.

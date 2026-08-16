@@ -11,4 +11,4 @@ package com.duster.transport.data.dto.producer.message
  *       - нужен только если мы хотим подписаться на изменение статуса сообщения, если не хотим, этот параметр не передаем
  *       - если со стороны сервера у нас монолит, то хорошим тоно является producerDeviseId равный 0
  */
-data class MessageBirthCertificate(val tmpId : Int, val producerDeviseId : String)
+data class MessageBirthCertificate(val tmpId : Long, val producerDeviseId : String)

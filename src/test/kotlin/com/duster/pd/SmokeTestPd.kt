@@ -175,7 +175,7 @@ class SmokeTestPd {
      */
     fun fromProducerToConsumerWhisSubscribeTest(producer: Producer, consumer: Consumer) {
 
-        val tmpId = 42
+        val tmpId = 42L
 
         val latchMessage = CountDownLatch(1)
         val latchDelivered = CountDownLatch(1)

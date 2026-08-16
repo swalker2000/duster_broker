@@ -30,7 +30,7 @@ class MainRepository {
      * @param id идентификатор сообщения
      * @return статус доставки, или null если сообщение с таким id не найдено
      */
-    fun findDeliveredById(id: Int): Optional<DeliveryStatus> {
+    fun findDeliveredById(id: Long): Optional<DeliveryStatus> {
         return messageRepository.findDeliveredById(id)
     }
 
@@ -75,7 +75,7 @@ class MainRepository {
      */
     @Transactional
     fun updateDeliveryStatus(
-        id: Int,
+        id: Long,
         deliveryStatus: DeliveryStatus,
         deliveredDate: Date
     )  : Message
@@ -89,7 +89,7 @@ class MainRepository {
      * @return количество обновленных данных в базе.
      */
     fun updateDeliveryError(
-        id: Int,
+        id: Long,
         deliveredError: Boolean
     ): Int
     {

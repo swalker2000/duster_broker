@@ -4,6 +4,7 @@ import com.duster.duster_protocol.messagefactory.transport.TransportLayByteGette
 import com.duster.duster_protocol.messagefactory.transport.constant.DbpMessageType
 import com.duster.transport.data.dto.consumer.ConsumerMessageInDto
 import com.duster.transport.data.dto.consumer.ConsumerMessageOutDto
+import com.duster.transport.data.dto.producer.message.ProducerMessageInDto
 import com.duster.transport.data.dto.producer.message.ProducerMessageOutDto
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 
@@ -71,15 +72,19 @@ object ServiceByteArrayGenerator {
         return transportLayByteGetter.getTransmitDateFromPayload(DbpMessageType.BROKER_MESSAGE_RECEIVED_FROM_PRODUCER, payload)
     }
 
-    fun producerMessageIn(message: ProducerMessageOutDto): List<Int> {
-        val idArray = getBytes(message.id)
-        val tmpIdArray = getBytes(message.tmpId?:0)
+    fun producerMessageIn(message: ProducerMessageInDto): List<Int> {
+        val tmpIdArray = getBytes(message.messageBirthCertificate?.tmpId?:0)
+        val commandArray: List<Int> = message.command.map { it.code and 0xFF }
+        val dataJson = message.data?.let { objectMapper.writeValueAsString(it) } ?: "{}"
+        val dataArray = dataJson.toByteArray(Charsets.UTF_8).map { it.toInt() and 0xFF }
 
         val payload: MutableList<Int> = mutableListOf()
-        payload.addAll(idArray)
         payload.addAll(tmpIdArray)
-        payload.add(message.deliveryStatus.ordinal)
-        return transportLayByteGetter.getTransmitDateFromPayload(DbpMessageType.BROKER_MESSAGE_RECEIVED_FROM_PRODUCER, payload)
+        payload.addAll(getBytes2(commandArray.size))
+        payload.addAll(commandArray)
+        payload.add(message.believerGuarantee.ordinal)
+        payload.addAll(dataArray)
+        return transportLayByteGetter.getTransmitDateFromPayload(DbpMessageType.PRODUCER_SEND_MESSAGE, payload)
     }
 
 
