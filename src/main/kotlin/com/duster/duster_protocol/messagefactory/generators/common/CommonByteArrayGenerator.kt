@@ -1,8 +1,9 @@
 package com.duster.duster_protocol.messagefactory.generators.common
 
-import com.duster.duster_protocol.messagefactory.CrcCounter
-import com.duster.duster_protocol.messagefactory.DbpMessageType
-import com.duster.duster_protocol.messagefactory.StandardBytes
+import com.duster.duster_protocol.messagefactory.transport.CrcCounter
+import com.duster.duster_protocol.messagefactory.transport.TransportLayByteGetter
+import com.duster.duster_protocol.messagefactory.transport.constant.DbpMessageType
+import com.duster.duster_protocol.messagefactory.transport.constant.StandardBytes
 
 /**
  * Генератор/парсер для одного конкретного типа <T> сообщений в соответсвии с протоколом duster_broker.
@@ -10,6 +11,9 @@ import com.duster.duster_protocol.messagefactory.StandardBytes
  * @param dbpMessageType тип сообщений, с которыми работает данный генератор.
  */
 abstract class CommonByteArrayGenerator<T : Any>(private val dbpMessageType: DbpMessageType) {
+
+
+    private val transportLayByteGetter = TransportLayByteGetter()
 
     /** Минимальный размер полезной нагрузки (у переменных сообщений фактический size может быть больше). */
     protected abstract val MIN_PAYLOAD_SIZE: Int
@@ -35,7 +39,7 @@ abstract class CommonByteArrayGenerator<T : Any>(private val dbpMessageType: Dbp
     fun generateByteArray(message: T) : List<Int>
     {
         val payload = generatePayload(message)
-        return getTransmitDateFromPayload(payload)
+        return transportLayByteGetter.getTransmitDateFromPayload(dbpMessageType, payload)
     }
 
     /**
@@ -52,19 +56,6 @@ abstract class CommonByteArrayGenerator<T : Any>(private val dbpMessageType: Dbp
         return parsePayload(payload)
     }
 
-
-
-
-
-    private fun getTransmitDateFromPayload(payload: List<Int>): List<Int> {
-        val transmitDate: MutableList<Int> = mutableListOf()
-        transmitDate.add(StandardBytes.START_BYTE)
-        transmitDate.add(dbpMessageType.code)
-        transmitDate.addAll(escapeBytes(payload))
-        transmitDate.addAll(CrcCounter.countCrc16(payload))
-        transmitDate.add(StandardBytes.STOP_BYTE)
-        return transmitDate
-    }
 
     /**
      * Разбирает транспортный кадр: START | TYPE | escape(payload) | CRC16_HI | CRC16_LO | STOP.
@@ -94,23 +85,6 @@ abstract class CommonByteArrayGenerator<T : Any>(private val dbpMessageType: Dbp
             return null
         }
         return payload
-    }
-
-
-
-    /**
-     * Экранирует байты полезной нагрузки:
-     * перед startByte, stopByte и самим mirrow вставляется mirrow.
-     */
-    protected fun escapeBytes(bytes: List<Int>): List<Int> {
-        val result = mutableListOf<Int>()
-        for (byte in bytes) {
-            if (byte == StandardBytes.START_BYTE || byte == StandardBytes.STOP_BYTE || byte == StandardBytes.MIRROR) {
-                result.add(StandardBytes.MIRROR)
-            }
-            result.add(byte)
-        }
-        return result
     }
 
 

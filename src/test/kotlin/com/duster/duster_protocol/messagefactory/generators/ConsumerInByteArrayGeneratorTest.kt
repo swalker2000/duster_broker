@@ -1,9 +1,9 @@
 package com.duster.duster_protocol.messagefactory.generators
 
 import com.duster.database.data.message.DeliveryStatus
-import com.duster.duster_protocol.messagefactory.CrcCounter
-import com.duster.duster_protocol.messagefactory.DbpMessageType
-import com.duster.duster_protocol.messagefactory.StandardBytes
+import com.duster.duster_protocol.messagefactory.transport.CrcCounter
+import com.duster.duster_protocol.messagefactory.transport.constant.DbpMessageType
+import com.duster.duster_protocol.messagefactory.transport.constant.StandardBytes
 import com.duster.duster_protocol.messagefactory.generators.common.ConsumerInByteArrayGenerator
 import com.duster.transport.data.dto.consumer.ConsumerMessageInDto
 import org.junit.jupiter.api.Assertions.assertEquals

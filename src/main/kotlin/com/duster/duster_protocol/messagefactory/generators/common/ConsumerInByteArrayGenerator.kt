@@ -1,7 +1,7 @@
 package com.duster.duster_protocol.messagefactory.generators.common
 
 import com.duster.database.data.message.DeliveryStatus
-import com.duster.duster_protocol.messagefactory.DbpMessageType
+import com.duster.duster_protocol.messagefactory.transport.constant.DbpMessageType
 import com.duster.transport.data.dto.consumer.ConsumerMessageInDto
 
 /**

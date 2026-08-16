@@ -1,4 +1,4 @@
-package com.duster.duster_protocol.messagefactory
+package com.duster.duster_protocol.messagefactory.transport.constant
 
 /**
  * Типы сообщений специфичные для протокола duster_broker

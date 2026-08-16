@@ -10,7 +10,7 @@ import com.duster.transport.data.dto.OutDto
  * @param deliveryStatus статус доставки сообщения отправленного producer
  */
 class ProducerMessageOutDto(
-    var id: Int,
-    var tmpId : Int?,
+    var id: Long,
+    var tmpId : Long?,
     var deliveryStatus: DeliveryStatus
 ) : OutDto

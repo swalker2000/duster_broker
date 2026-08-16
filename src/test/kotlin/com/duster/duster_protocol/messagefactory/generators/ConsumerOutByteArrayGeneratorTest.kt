@@ -1,8 +1,8 @@
 package com.duster.duster_protocol.messagefactory.generators
 
 import com.duster.database.data.message.DeliveryGuarantee
-import com.duster.duster_protocol.messagefactory.DbpMessageType
-import com.duster.duster_protocol.messagefactory.StandardBytes
+import com.duster.duster_protocol.messagefactory.transport.constant.DbpMessageType
+import com.duster.duster_protocol.messagefactory.transport.constant.StandardBytes
 import com.duster.duster_protocol.messagefactory.generators.common.ConsumerOutByteArrayGenerator
 import com.duster.transport.data.dto.consumer.ConsumerMessageOutDto
 import org.junit.jupiter.api.Assertions.assertEquals
