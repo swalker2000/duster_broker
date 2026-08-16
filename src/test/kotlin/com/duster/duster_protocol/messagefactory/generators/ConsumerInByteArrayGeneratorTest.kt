@@ -4,6 +4,7 @@ import com.duster.database.data.message.DeliveryStatus
 import com.duster.duster_protocol.messagefactory.CrcCounter
 import com.duster.duster_protocol.messagefactory.DbpMessageType
 import com.duster.duster_protocol.messagefactory.StandardBytes
+import com.duster.duster_protocol.messagefactory.generators.common.ConsumerInByteArrayGenerator
 import com.duster.transport.data.dto.consumer.ConsumerMessageInDto
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
@@ -17,7 +18,7 @@ class ConsumerInByteArrayGeneratorTest {
         val frame = ConsumerInByteArrayGenerator.generateByteArray(sampleIn())
 
         assertEquals(StandardBytes.START_BYTE, frame.first())
-        assertEquals(DbpMessageType.MESSAGE_RECEIVED.code, frame[1])
+        assertEquals(DbpMessageType.CONSUMER_MESSAGE_RECEIVED.code, frame[1])
         assertEquals(StandardBytes.STOP_BYTE, frame.last())
     }
 
@@ -86,7 +87,7 @@ class ConsumerInByteArrayGeneratorTest {
     @Test
     fun parse_rejectsWrongMessageType() {
         val frame = buildInFrame(1, DeliveryStatus.DELIVERED).toMutableList()
-        frame[1] = DbpMessageType.TAKE_MESSAGE.code.toChar()
+        frame[1] = DbpMessageType.BROKER_SEND_MESSAGE_TO_CONSUMER.code.toChar()
 
         assertNull(ConsumerInByteArrayGenerator.parseByteArray(frame))
     }
@@ -116,7 +117,7 @@ class ConsumerInByteArrayGeneratorTest {
         val payload = longBytes(1) + DeliveryStatus.DELIVERED.ordinal
         val brokenEscaped = escape(payload) + StandardBytes.MIRROR
         val frame = (
-            listOf(StandardBytes.START_BYTE, DbpMessageType.MESSAGE_RECEIVED.code) +
+            listOf(StandardBytes.START_BYTE, DbpMessageType.CONSUMER_MESSAGE_RECEIVED.code) +
                 brokenEscaped +
                 CrcCounter.countCrc16(payload) +
                 listOf(StandardBytes.STOP_BYTE)
@@ -133,7 +134,7 @@ class ConsumerInByteArrayGeneratorTest {
     private fun buildInFrame(id: Long, status: DeliveryStatus): List<Char> {
         val payload = longBytes(id) + status.ordinal
         return (
-            listOf(StandardBytes.START_BYTE, DbpMessageType.MESSAGE_RECEIVED.code) +
+            listOf(StandardBytes.START_BYTE, DbpMessageType.CONSUMER_MESSAGE_RECEIVED.code) +
                 escape(payload) +
                 CrcCounter.countCrc16(payload) +
                 listOf(StandardBytes.STOP_BYTE)

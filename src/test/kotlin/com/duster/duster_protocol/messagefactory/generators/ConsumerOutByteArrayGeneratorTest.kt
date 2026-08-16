@@ -3,6 +3,7 @@ package com.duster.duster_protocol.messagefactory.generators
 import com.duster.database.data.message.DeliveryGuarantee
 import com.duster.duster_protocol.messagefactory.DbpMessageType
 import com.duster.duster_protocol.messagefactory.StandardBytes
+import com.duster.duster_protocol.messagefactory.generators.common.ConsumerOutByteArrayGenerator
 import com.duster.transport.data.dto.consumer.ConsumerMessageOutDto
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
@@ -17,7 +18,7 @@ class ConsumerOutByteArrayGeneratorTest {
         val frame = ConsumerOutByteArrayGenerator.generateByteArray(sampleOut())
 
         assertEquals(StandardBytes.START_BYTE, frame.first())
-        assertEquals(DbpMessageType.TAKE_MESSAGE.code, frame[1])
+        assertEquals(DbpMessageType.BROKER_SEND_MESSAGE_TO_CONSUMER.code, frame[1])
         assertEquals(StandardBytes.STOP_BYTE, frame.last())
     }
 
@@ -90,7 +91,7 @@ class ConsumerOutByteArrayGeneratorTest {
     @Test
     fun parse_rejectsWrongMessageType() {
         val frame = ConsumerOutByteArrayGenerator.generateByteArray(sampleOut()).toMutableList()
-        frame[1] = DbpMessageType.MESSAGE_RECEIVED.code
+        frame[1] = DbpMessageType.CONSUMER_MESSAGE_RECEIVED.code
 
         assertNull(ConsumerOutByteArrayGenerator.parseByteArray(frame.map { it.toChar() }))
     }

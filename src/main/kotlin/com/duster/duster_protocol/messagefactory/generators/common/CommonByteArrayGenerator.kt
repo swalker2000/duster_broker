@@ -1,10 +1,15 @@
-package com.duster.duster_protocol.messagefactory
+package com.duster.duster_protocol.messagefactory.generators.common
+
+import com.duster.duster_protocol.messagefactory.CrcCounter
+import com.duster.duster_protocol.messagefactory.DbpMessageType
+import com.duster.duster_protocol.messagefactory.StandardBytes
 
 /**
  * Генератор/парсер для одного конкретного типа <T> сообщений в соответсвии с протоколом duster_broker.
+ *  - предназначен для работы с сообщениями имеющими полезную нагрузку. Не с сервисными сообщениями.
  * @param dbpMessageType тип сообщений, с которыми работает данный генератор.
  */
-abstract class ByteArrayGenerator<T : Any>(private val dbpMessageType: DbpMessageType) {
+abstract class CommonByteArrayGenerator<T : Any>(private val dbpMessageType: DbpMessageType) {
 
     /** Минимальный размер полезной нагрузки (у переменных сообщений фактический size может быть больше). */
     protected abstract val MIN_PAYLOAD_SIZE: Int

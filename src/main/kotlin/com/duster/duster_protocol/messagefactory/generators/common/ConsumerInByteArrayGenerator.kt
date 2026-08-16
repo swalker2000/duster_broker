@@ -1,14 +1,13 @@
-package com.duster.duster_protocol.messagefactory.generators
+package com.duster.duster_protocol.messagefactory.generators.common
 
 import com.duster.database.data.message.DeliveryStatus
-import com.duster.duster_protocol.messagefactory.ByteArrayGenerator
 import com.duster.duster_protocol.messagefactory.DbpMessageType
 import com.duster.transport.data.dto.consumer.ConsumerMessageInDto
 
 /**
  *  Генератор сообщений от консьюмера, нам брокеру.
  */
-object ConsumerInByteArrayGenerator : ByteArrayGenerator<ConsumerMessageInDto>(DbpMessageType.MESSAGE_RECEIVED) {
+object ConsumerInByteArrayGenerator : CommonByteArrayGenerator<ConsumerMessageInDto>(DbpMessageType.CONSUMER_MESSAGE_RECEIVED) {
 
     /** id (8 байт) + deliveryStatus (1 байт) — фиксированный размер */
     override val MIN_PAYLOAD_SIZE: Int = 9

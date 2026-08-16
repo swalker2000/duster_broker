@@ -1,7 +1,6 @@
-package com.duster.duster_protocol.messagefactory.generators
+package com.duster.duster_protocol.messagefactory.generators.common
 
 import com.duster.database.data.message.DeliveryGuarantee
-import com.duster.duster_protocol.messagefactory.ByteArrayGenerator
 import com.duster.duster_protocol.messagefactory.DbpMessageType
 import com.duster.transport.data.dto.consumer.ConsumerMessageOutDto
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
@@ -12,7 +11,7 @@ import com.fasterxml.jackson.module.kotlin.readValue
  *
  * Payload: id[8] + timestamp[8] + commandLen[2 LE] + command[N] + believerGuarantee[1] + dataJson[M]
  */
-object ConsumerOutByteArrayGenerator : ByteArrayGenerator<ConsumerMessageOutDto>(DbpMessageType.TAKE_MESSAGE) {
+object ConsumerOutByteArrayGenerator : CommonByteArrayGenerator<ConsumerMessageOutDto>(DbpMessageType.BROKER_SEND_MESSAGE_TO_CONSUMER) {
 
     private val objectMapper = jacksonObjectMapper()
 
