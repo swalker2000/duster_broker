@@ -86,7 +86,8 @@ class MessageDetectorTest {
             assertEquals(expectedType, detector.detect(frame), "detect $expectedType")
             val parsed = detector.parse(frame)
             assertNotNull(parsed, "parse $expectedType")
-            assertTrue(detector.parserFor(expectedType) != null)
+            assertTrue(expectedType.parser != null)
+            assertTrue(detector.parserFor(expectedType) === expectedType.parser)
         }
     }
 
@@ -122,7 +123,9 @@ class MessageDetectorTest {
     }
 
     @Test
-    fun parserFor_nullOnServiceTypes() {
+    fun parser_isNullOnServiceTypes() {
+        assertNull(DbpMessageType.CONSUMER_ASK_MESSAGE.parser)
+        assertNull(DbpMessageType.BROKER_DONT_HAVE_MESSAGE_FOR_CONSUMER.parser)
         assertNull(detector.parserFor(DbpMessageType.CONSUMER_ASK_MESSAGE))
         assertNull(detector.parserFor(DbpMessageType.BROKER_DONT_HAVE_MESSAGE_FOR_CONSUMER))
     }
