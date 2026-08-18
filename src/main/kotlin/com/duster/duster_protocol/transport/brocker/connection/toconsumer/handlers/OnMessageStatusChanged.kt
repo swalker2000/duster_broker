@@ -4,6 +4,5 @@ import com.duster.transport.data.dto.consumer.ConsumerMessageInDto
 
 fun interface OnMessageStatusChanged {
 
-    fun onMessageStatusChanged(message: ConsumerMessageInDto)
-
+    fun onMessageStatusChanged(deviseId: String, message: ConsumerMessageInDto)
 }

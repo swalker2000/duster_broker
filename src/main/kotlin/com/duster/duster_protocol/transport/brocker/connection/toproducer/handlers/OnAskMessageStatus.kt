@@ -4,5 +4,5 @@ import com.duster.transport.data.dto.producer.ProducerDeliveryStatusOutDto
 
 fun interface OnAskMessageStatus {
 
-    fun onAskMessageStatus(messageId: String): ProducerDeliveryStatusOutDto
+    fun onAskMessageStatus(deviseId: String, messageId: Long): ProducerDeliveryStatusOutDto
 }

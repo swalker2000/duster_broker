@@ -5,10 +5,13 @@ import com.duster.database.data.message.DeliveryStatus
 import com.duster.transport.data.dto.consumer.ConsumerMessageInDto
 import com.duster.transport.data.dto.producer.message.MessageBirthCertificate
 import com.duster.transport.data.dto.producer.message.ProducerMessageInDto
+import com.duster.pd.dustertcp.ConsumerDusterTcp
+import com.duster.pd.dustertcp.ProducerDusterTcp
 import com.duster.pd.mqtt.ConsumerMqtt
 import com.duster.pd.mqtt.ProducerMqtt
 import com.duster.pd.rest.ConsumerRest
 import com.duster.pd.rest.ProducerRest
+import com.duster.transport.duster.DusterTcpMessageHandler
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -38,6 +41,9 @@ class SmokeTestPd {
 
     @LocalServerPort
     private var restPort: Int = 0
+
+    @Autowired
+    private lateinit var dusterTcpMessageHandler: DusterTcpMessageHandler
 
     /** HTTP-база для [ConsumerRest] / [ProducerRest] (не путать с [brokerUrl] — там MQTT `tcp://…`). */
     private fun restBaseUrl(): String = "http://127.0.0.1:$restPort"
@@ -78,6 +84,26 @@ class SmokeTestPd {
         return ProducerAndConsumer(producer, consumer)
     }
 
+    private fun generateDusterTcpProducerAndConsumerForFromProducerToConsumerNoSubscribeTest(): ProducerAndConsumer {
+        val host = "127.0.0.1"
+        val port = dusterTcpMessageHandler.port
+        val deviceId = "pd-dbp-no-sub-${System.currentTimeMillis()}"
+
+        val consumer = ConsumerDusterTcp(host, port, deviceId)
+        val producer = ProducerDusterTcp(host, port, deviceId)
+        return ProducerAndConsumer(producer, consumer)
+    }
+
+    private fun generateDusterTcpProducerAndConsumerForFromProducerToConsumerWhisSubscribeTest(): ProducerAndConsumer {
+        val host = "127.0.0.1"
+        val port = dusterTcpMessageHandler.port
+        val deviceId = "pd-dbp-with-sub-${System.currentTimeMillis()}"
+
+        val consumer = ConsumerDusterTcp(host, port, deviceId)
+        val producer = ProducerDusterTcp(host, port, deviceId = "0")
+        return ProducerAndConsumer(producer, consumer)
+    }
+
 
 
     private fun brokerUrl(): String {
@@ -115,6 +141,22 @@ class SmokeTestPd {
         fromProducerToConsumerWhisSubscribeTest(
             restProducerAndConsumerForFromProducerToConsumerWhisSubscribeTest.producer,
             restProducerAndConsumerForFromProducerToConsumerWhisSubscribeTest.consumer
+        )
+        logger.info("=============DUSTER TCP START====================")
+
+        logger.info("fromProducerToConsumerNoSubscribeTest")
+        val dusterTcpProducerAndConsumerForFromProducerToConsumerNoSubscribeTest =
+            generateDusterTcpProducerAndConsumerForFromProducerToConsumerNoSubscribeTest()
+        fromProducerToConsumerNoSubscribeTest(
+            dusterTcpProducerAndConsumerForFromProducerToConsumerNoSubscribeTest.producer,
+            dusterTcpProducerAndConsumerForFromProducerToConsumerNoSubscribeTest.consumer
+        )
+        logger.info("dusterTcpProducerAndConsumerForFromProducerToConsumerWhisSubscribeTest")
+        val dusterTcpProducerAndConsumerForFromProducerToConsumerWhisSubscribeTest =
+            generateDusterTcpProducerAndConsumerForFromProducerToConsumerWhisSubscribeTest()
+        fromProducerToConsumerWhisSubscribeTest(
+            dusterTcpProducerAndConsumerForFromProducerToConsumerWhisSubscribeTest.producer,
+            dusterTcpProducerAndConsumerForFromProducerToConsumerWhisSubscribeTest.consumer
         )
     }
 
