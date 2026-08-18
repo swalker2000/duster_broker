@@ -46,9 +46,10 @@ enum class DbpMessageType(
     BROKER_DONT_HAVE_MESSAGE_FOR_CONSUMER(0xC3),
 
     /**
-     *  Консьюмер сообщает брокеру, что сообщение им получено.
+     * Консьюмер сообщает брокеру, что статус сообщения поменялся.
+     * (к примеру сообщение было получено, либо выполнено)
      */
-    CONSUMER_MESSAGE_RECEIVED(0xC4, { ConsumerMessageReceivedParser }),
+    CONSUMER_MESSAGE_STATUS_CHANDGED(0xC4, { ConsumerMessageReceivedParser }),
 
     /**
      * Консъюмер логинится (аналог REST `POST /auth/login`).

@@ -118,20 +118,21 @@ object ByteArrayGeneratorWhis {
     object FromConsumer
     {
         /**
-         * Консьюмер сообщает брокеру, что сообщение им получено.
+         * Консьюмер сообщает брокеру, что статус сообщения поменялся.
+         * (к примеру сообщение было получено, либо выполнено)
          */
-        fun messageIn(message: ConsumerMessageInDto): List<Int> {
+        fun messageStatusChanged(message: ConsumerMessageInDto): List<Int> {
             val idArray = getBytes(message.id)
             val payload: MutableList<Int> = mutableListOf()
             payload.addAll(idArray)
             payload.add(message.deliveryStatus!!.ordinal)
-            return transportLayByteGetter.getTransmitDateFromPayload(DbpMessageType.CONSUMER_MESSAGE_RECEIVED, payload)
+            return transportLayByteGetter.getTransmitDateFromPayload(DbpMessageType.CONSUMER_MESSAGE_STATUS_CHANDGED, payload)
         }
 
         /**
          * Консьюмер запрашивает у брокера, есть ли доступные для него сообщения.
          */
-        fun askMessage() : List<Int>
+        fun giveMeMessage() : List<Int>
         {
             return  transportLayByteGetter.getTransmitDateFromPayload(DbpMessageType.CONSUMER_ASK_MESSAGE)
         }
@@ -153,7 +154,7 @@ object ByteArrayGeneratorWhis {
         /**
          * Продюсер запрашивает статус сообщения.
          */
-        fun producerAskMessageStatus(messageId: Long) : List<Int>
+        fun askMessageStatus(messageId: Long) : List<Int>
         {
             val idArray = getBytes(messageId)
             val payload: MutableList<Int> = mutableListOf()
@@ -165,7 +166,7 @@ object ByteArrayGeneratorWhis {
         /**
          * Продюсер отправляет сообщение с полезной нагрузкой.
          */
-        fun messageIn(message: ProducerMessageInDto): List<Int> {
+        fun sendMessage(message: ProducerMessageInDto): List<Int> {
             val tmpIdArray = getBytes(message.messageBirthCertificate?.tmpId ?: 0)
             val commandArray: List<Int> = message.command.map { it.code and 0xFF }
             val dataJson = message.data?.let { objectMapper.writeValueAsString(it) } ?: "{}"

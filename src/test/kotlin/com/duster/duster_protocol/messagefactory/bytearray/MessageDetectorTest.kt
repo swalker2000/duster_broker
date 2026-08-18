@@ -30,7 +30,7 @@ class MessageDetectorTest {
     fun detect_serviceFramesWithoutPayload() {
         assertEquals(
             DbpMessageType.CONSUMER_ASK_MESSAGE,
-            detector.detect(ByteArrayGeneratorWhis.FromConsumer.askMessage())
+            detector.detect(ByteArrayGeneratorWhis.FromConsumer.giveMeMessage())
         )
         assertEquals(
             DbpMessageType.BROKER_DONT_HAVE_MESSAGE_FOR_CONSUMER,
@@ -42,7 +42,7 @@ class MessageDetectorTest {
     fun parse_serviceFramesReturnType() {
         assertEquals(
             DbpMessageType.CONSUMER_ASK_MESSAGE,
-            detector.parse(ByteArrayGeneratorWhis.FromConsumer.askMessage())
+            detector.parse(ByteArrayGeneratorWhis.FromConsumer.giveMeMessage())
         )
         assertEquals(
             DbpMessageType.BROKER_DONT_HAVE_MESSAGE_FOR_CONSUMER,
@@ -67,13 +67,13 @@ class MessageDetectorTest {
         val producerOut = ProducerMessageOutDto(8, 9, DeliveryStatus.COMPLETED)
 
         val cases = listOf(
-            ByteArrayGeneratorWhis.FromConsumer.messageIn(consumerIn) to DbpMessageType.CONSUMER_MESSAGE_RECEIVED,
+            ByteArrayGeneratorWhis.FromConsumer.messageStatusChanged(consumerIn) to DbpMessageType.CONSUMER_MESSAGE_STATUS_CHANDGED,
             ByteArrayGeneratorWhis.Broker.ToConsumer.messageOut(consumerOut) to DbpMessageType.BROKER_SEND_MESSAGE_TO_CONSUMER,
             ByteArrayGeneratorWhis.FromConsumer.login("d", "p") to DbpMessageType.CONSUMER_LOGIN,
             ByteArrayGeneratorWhis.Broker.ToConsumer.loginResult(true, "d", Role.DEVISE, "t") to DbpMessageType.BROKER_CONSUMER_LOGIN_RESULT,
-            ByteArrayGeneratorWhis.FromProducer.messageIn(producerIn) to DbpMessageType.PRODUCER_SEND_MESSAGE,
+            ByteArrayGeneratorWhis.FromProducer.sendMessage(producerIn) to DbpMessageType.PRODUCER_SEND_MESSAGE,
             ByteArrayGeneratorWhis.Broker.ToProducer.messageOut(producerOut) to DbpMessageType.BROKER_MESSAGE_RECEIVED_FROM_PRODUCER,
-            ByteArrayGeneratorWhis.FromProducer.producerAskMessageStatus(5) to DbpMessageType.PRODUCER_ASK_MESSAGE_STATUS,
+            ByteArrayGeneratorWhis.FromProducer.askMessageStatus(5) to DbpMessageType.PRODUCER_ASK_MESSAGE_STATUS,
             ByteArrayGeneratorWhis.Broker.ToProducer.sendMessageStatus(
                 5,
                 ProducerDeliveryStatusOutDto(DeliveryStatus.CANCELLED)
@@ -109,7 +109,7 @@ class MessageDetectorTest {
         ) as ProducerDeliveryStatusFrame
         assertEquals(2L, status.messageId)
 
-        val asked = detector.parse(ByteArrayGeneratorWhis.FromProducer.producerAskMessageStatus(2L)) as Long
+        val asked = detector.parse(ByteArrayGeneratorWhis.FromProducer.askMessageStatus(2L)) as Long
         assertEquals(2L, asked)
     }
 
@@ -117,7 +117,7 @@ class MessageDetectorTest {
     fun detect_rejectsGarbage() {
         assertNull(detector.detect(emptyList()))
         assertNull(detector.detect(listOf(StandardBytes.START_BYTE, 0xFF, 0, 0, StandardBytes.STOP_BYTE)))
-        val broken = ByteArrayGeneratorWhis.FromConsumer.askMessage().toMutableList()
+        val broken = ByteArrayGeneratorWhis.FromConsumer.giveMeMessage().toMutableList()
         broken[broken.size - 3] = broken[broken.size - 3] xor 0xFF
         assertNull(detector.detect(broken))
     }

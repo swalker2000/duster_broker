@@ -36,7 +36,7 @@ class ByteArrayGeneratorWhisRoundTripTest {
         val original = ConsumerMessageInDto(id = 42).apply {
             deliveryStatus = DeliveryStatus.COMPLETED
         }
-        val parsed = ConsumerMessageReceivedParser.parse(ByteArrayGeneratorWhis.FromConsumer.messageIn(original))
+        val parsed = ConsumerMessageReceivedParser.parse(ByteArrayGeneratorWhis.FromConsumer.messageStatusChanged(original))
         assertNotNull(parsed)
         assertEquals(original.id, parsed!!.id)
         assertEquals(original.deliveryStatus, parsed.deliveryStatus)
@@ -50,7 +50,7 @@ class ByteArrayGeneratorWhisRoundTripTest {
             DeliveryStatus.DELIVERED,
         ).forEach { status ->
             val dto = ConsumerMessageInDto(id = 7).apply { deliveryStatus = status }
-            val parsed = ConsumerMessageReceivedParser.parse(ByteArrayGeneratorWhis.FromConsumer.messageIn(dto))
+            val parsed = ConsumerMessageReceivedParser.parse(ByteArrayGeneratorWhis.FromConsumer.messageStatusChanged(dto))
             assertEquals(status, parsed!!.deliveryStatus)
         }
     }
@@ -156,7 +156,7 @@ class ByteArrayGeneratorWhisRoundTripTest {
             command = "digitalWrite"
             data = mapOf("pinNumber" to 13, "pinValue" to true)
         }
-        val parsed = ProducerSendMessageParser.parse(ByteArrayGeneratorWhis.FromProducer.messageIn(original))
+        val parsed = ProducerSendMessageParser.parse(ByteArrayGeneratorWhis.FromProducer.sendMessage(original))
         assertNotNull(parsed)
         assertEquals(99, parsed!!.messageBirthCertificate!!.tmpId)
         assertEquals(original.command, parsed.command)
@@ -179,7 +179,7 @@ class ByteArrayGeneratorWhisRoundTripTest {
     @Test
     fun producerAskMessageStatus_roundTrip() {
         val parsed = ProducerAskMessageStatusParser.parse(
-            ByteArrayGeneratorWhis.FromProducer.producerAskMessageStatus(123456789L)
+            ByteArrayGeneratorWhis.FromProducer.askMessageStatus(123456789L)
         )
         assertEquals(123456789L, parsed)
     }
@@ -204,13 +204,13 @@ class ByteArrayGeneratorWhisRoundTripTest {
             DeliveryStatus.UNKNOWN,
         ).forEach { status ->
             val dto = ConsumerMessageInDto(id = 1).apply { deliveryStatus = status }
-            assertNull(ConsumerMessageReceivedParser.parse(ByteArrayGeneratorWhis.FromConsumer.messageIn(dto)))
+            assertNull(ConsumerMessageReceivedParser.parse(ByteArrayGeneratorWhis.FromConsumer.messageStatusChanged(dto)))
         }
     }
 
     @Test
     fun parser_rejectsWrongType() {
-        val frame = ByteArrayGeneratorWhis.FromConsumer.messageIn(sampleConsumerIn()).toMutableList()
+        val frame = ByteArrayGeneratorWhis.FromConsumer.messageStatusChanged(sampleConsumerIn()).toMutableList()
         frame[1] = DbpMessageType.BROKER_SEND_MESSAGE_TO_CONSUMER.code
         assertNull(ConsumerMessageReceivedParser.parse(frame))
     }

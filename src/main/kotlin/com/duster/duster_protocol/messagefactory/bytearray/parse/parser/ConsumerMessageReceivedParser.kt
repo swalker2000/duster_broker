@@ -5,12 +5,12 @@ import com.duster.duster_protocol.messagefactory.transport.constant.DbpMessageTy
 import com.duster.transport.data.dto.consumer.ConsumerMessageInDto
 
 /**
- * Парсер [DbpMessageType.CONSUMER_MESSAGE_RECEIVED].
+ * Парсер [DbpMessageType.CONSUMER_MESSAGE_STATUS_CHANDGED].
  * Payload: id[8] + deliveryStatus[1].
  */
 object ConsumerMessageReceivedParser : AbstractParser<ConsumerMessageInDto>() {
 
-    override val dbpMessageType: DbpMessageType = DbpMessageType.CONSUMER_MESSAGE_RECEIVED
+    override val dbpMessageType: DbpMessageType = DbpMessageType.CONSUMER_MESSAGE_STATUS_CHANDGED
     override val minPayloadSize: Int = 9
 
     override fun parsePayload(payload: List<Int>): ConsumerMessageInDto? {
