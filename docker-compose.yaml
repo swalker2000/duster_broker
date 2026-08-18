@@ -28,6 +28,9 @@ services:
       # --- Rest ---
       REST_SERVER_ADDRESS: "0.0.0.0"
 
+      # --- Duster TCP protocol ---
+      DUSTER_PROTOCOL_TCP_PORT: "9091"
+
       # --- Common ---
       COMMON_CHECK_NOT_DELIVERED_TIMEOUT: "60000"
       COMMON_MQTT_WAIT_RESPONSE_TIMEOUT: "30000"
@@ -37,6 +40,7 @@ services:
 
     ports:
       - "8080:8080"
+      - "9091:9091"
     restart: unless-stopped
     networks:
       - duster-net
