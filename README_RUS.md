@@ -1,4 +1,7 @@
 # Брокер сообщений для IOT с гарантиями доставки, отслеживанием статуса и ограничением скорости. (есть примеры подключения для esp32).
+
+Описание Duster Protocol: [instructions/duster_protocol/DUSTER_PROTOCOL_RUS.md](instructions/duster_protocol/DUSTER_PROTOCOL_RUS.md)
+
 - хранит сообщения как Kafka. Гарантирует доставку сообщения, даже если устройство выключено в момент отправки.
   Может гарантировать как доставку:
     - ```ONLY_LAST``` - последнего сообщения с выбранной командой для данного устройства.
@@ -10,7 +13,7 @@
     - ```DELIVERED``` - сообщение доставлено.
     - ```COMPLETED``` - задача, отправленная в сообщении, выполнена.
     - ```COMPLETED_WITH_ERROR``` - задача, отправленная в сообщении, не выполнена или выполнена с ошибкой.
-- в качестве несущего протокола использует MQTT и REST API (рекомендуется как основной. Документация: [instructions/restapi/REST_API_RUS.md](instructions/restapi/REST_API_RUS.md); интерактивная спецификация — [Swagger UI](http://localhost:8080/swagger-ui.html) Инструкция авторизации через swagger: [instructions/swagger/SWAGGER_AUTH_RUS.md](instructions/swagger/SWAGGER_AUTH_RUS.md)). Не забудь выставить `REST_SERVER_ADDRESS` в `docker-compose.yaml` или `application.yml`.<br>
+- транспорты: бинарный [Duster Protocol](instructions/duster_protocol/DUSTER_PROTOCOL_RUS.md), [MQTT](instructions/mqtt/MQTT_API_RUS.md), [REST API](instructions/restapi/REST_API_RUS.md) (интерактивная спецификация — [Swagger UI](http://localhost:8080/swagger-ui.html); авторизация в Swagger: [instructions/swagger/SWAGGER_AUTH_RUS.md](instructions/swagger/SWAGGER_AUTH_RUS.md)). Не забудь выставить `REST_SERVER_ADDRESS` в `docker-compose.yaml` или `application.yml`.<br>
   К примеру датчик температуры может отправлять показания по REST, а реле принимающее данные будет получать их по MQTT. Или же устройство, установленное в транспортном средстве, попадая в область, где ловит связь, получает по REST список пропущенных команд.
 # Админка  
 Доступна по адресу: `http://localhost:8080` <br>
@@ -20,107 +23,7 @@
 набор команд (сохраненных сообщений) и отправлять их по одному клику.
 
 
-## Алгоритм работы сервиса (передача сообщения от producer к consumer (id consumer : {deviceId}) )
-1. получает по MQTT команду передачу сообщения в топике 'producer/request/{deviceId}'.
-    Сообщение имеет тип JSON формата ProducerMessageInDto
-```json
-  {
-  "believerGuarantee": "RECEIPT_CONFIRMATION",
-  "command": "some_command",
-  "data": {
-    "key1" : "value1",
-    "key2" : "value2"
-    }
-  }
-```
-
-2. Из ProducerMessageInDto получает ConsumerMessageOutDto последний снабжается уникальным id
-
-```json
-  {
-      "id":2,
-      "believerGuarantee":"RECEIPT_CONFIRMATION",
-      "command":"digitalWrite",
-      "currentTimestamp":1772021717684,
-      "data":{
-        "key1" : "value1",
-        "key2" : "value2"
-      }
-   }
-```
-3. ConsumerMessageOutDto передает на Consumer в топике 'consumer/request/{deviceId}' 
-4. Если enum DeliveryGuarantee не NO ожидаем что consumer вернет ConsumerMessageInDto (с тем же id с которым пришел ConsumerMessageOutDto) в топике 'consumer/response/{deviceId}'
-```json
-  {
-      "id":2
-  }
-```
-5. Если сообщение от consumer не поступило в заданный период возвращаемся к пункту 3.
-
-## Алгоритм работы сервиса когда producer подписывается на изменения статуса доставки своего сообщения
-1. получает по MQTT команду передачу сообщения в топике 'producer/request/{deviceId}'.
-   Сообщение имеет тип JSON формата ProducerMessageInDto
-    - `messageBirthCertificate` - информация о происхождении сообщения. Если поле не найдено или null мы не информируем producer о сообщении.
-      - `tmpId` - (временный id сообщения) не равный 0.
-      - `producerDeviseId` - id producer другими словами id устройства (deviceId) которое сгенерировало сообщение.
-2. 
-```json
-  {
-  "believerGuarantee": "RECEIPT_CONFIRMATION",
-  "messageBirthCertificate" : {
-    "tmpId" : 3,
-    "producerDeviseId" : "0"
-  },
-  "command": "some_command",
-  "data": {
-    "key1" : "value1",
-    "key2" : "value2"
-    }
-  }
-```
-
-3. Из ProducerMessageInDto получает ConsumerMessageOutDto последний снабжается уникальным id
-
-```json
-  {
-      "id":2,
-      "believerGuarantee":"RECEIPT_CONFIRMATION",
-      "command":"digitalWrite",
-      "currentTimestamp":1772021717684,
-      "data":{
-        "key1" : "value1",
-        "key2" : "value2"
-      }
-   }
-```
-4. На producer в топик producer/response/{producerDeviceId} передается ProducerMessageOutDto с сгенерированным ранее id (в поле id).
-```json
-  {
-      "id":2,
-      "tmpId" : 3,
-      "deliveryStatus": "NOT_DELIVERED"
-   }
-```
-5. ConsumerMessageOutDto передает на Consumer в топике 'consumer/request/{deviceId}'
-6. Если enum DeliveryGuarantee не NO ожидаем что consumer вернет ConsumerMessageInDto (с тем же id с которым пришел ConsumerMessageOutDto) в топике 'consumer/response/{deviceId}'<br>
-Если поле `deliveryStatus` не передается или null считаем, что статус `DELIVERED`.<br>
-Если через какое то время мы хотим поменять статус сообщения на `COMPLETED_WITH_ERROR` или `COMPLETED` делаем это в этом же сообщении.
-```json
-  {
-      "id":2,
-      "deliveryStatus" : "DELIVERED"
-  }
-```
-7. Если сообщение от consumer не поступило в заданный период возвращаемся к пункту 3. <br>
-Если поступило информируем об этом producer в топике producer/response/{producerDeviceId} сообщением ProducerMessageOutDto.<br>
-О всех дальнейших изменениях `deliveryStatus` сообщения информируем так же в этом же топике.
-```json
-  {
-      "id":2,
-      "tmpId" : 3,
-      "deliveryStatus": "DELIVERED"
-   }
-```
+Топики MQTT, JSON и порядок обмена producer/consumer: [instructions/mqtt/MQTT_API_RUS.md](instructions/mqtt/MQTT_API_RUS.md).
 
 ## Запуск
 ### Запуск через docker compose
@@ -152,21 +55,20 @@ MQTT_PORT=8883
 3. Выставите требуемые настройки (параметры подключения к базе данных, брокеру сообщений..) в файле application.yaml.
 4. Запустите сервис командой ```java -jar duster-0.0.1-SNAPSHOT.jar```
 
-## Пример IOT клиента
-Пример consumer на основе esp32 : https://github.com/swalker2000/duster_esp32_example
+## Пример IOT клиента работающего по протоколу Duster Protocol
+Пример consumer на основе esp32 : https://github.com/swalker2000/duster_esp32_protocol_example
 Для компиляции необходимо в основной директории скетча создать файл Secret.h со следующим содержимым: 
 ```c++
 #define SSID          "MY_SSID"
 #define WIFI_PASS     "MY_WIFI_PASS"
-#define URL           "MQTT_URL"
-#define PORT          8883
-#define MQTT_USERNAME "MQTT_USERNAME"
-#define MQTT_PASS     "MQTT_PASSWORD"
+#define HOST          "BROKER_HOST"
+#define PORT          9091
+#define DEVICE_ID     "device1"
+#define DEVICE_PASS   "DEVICE_PASSWORD"
 ```
 
 Esp32 чип мигающий светодиодом по команде от брокера. Слушает топик consumer/request/device123
-Сообщение для того что бы 13 светодиод загорелся: <br>
-Топик : (producer/request/device123)
+Полезная нагрузка сообщения для того что бы 13 светодиод загорелся: <br>
 ```json
 {
   "believerGuarantee": "RECEIPT_CONFIRMATION",
@@ -177,8 +79,7 @@ Esp32 чип мигающий светодиодом по команде от б
   }
 }
 ```
-Сообщение для того что бы 13 светодиод потух. <br>
-Топик : (producer/request/device123)
+Полезная нагрузка сообщения для того что бы 13 светодиод потух. <br>
 ```json
 {
   "believerGuarantee": "RECEIPT_CONFIRMATION",
@@ -190,7 +91,7 @@ Esp32 чип мигающий светодиодом по команде от б
 }
 ```
 
-## Пример прошивки коммутатора на базе esp32 (lilygo T-Relay ) работающего с сервисом гарантии доставки работающим поверх MQTT
+## Пример прошивки коммутатора на базе esp32 (lilygo T-Relay ) работающего с сервисом по протоколу MQTT
 # https://github.com/swalker2000/duster_lilygo_relay
 
 # Интеграция с openremote (https://github.com/openremote/openremote)

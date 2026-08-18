@@ -127,7 +127,7 @@ API защищён JWT (HS256, stateless). CSRF отключён.
 
 ## Типовой сценарий (producer → consumer)
 
-Ниже — аналог MQTT-алгоритма из README, но через REST.
+Ниже — аналог MQTT-сценария из [MQTT_API_RUS.md](../mqtt/MQTT_API_RUS.md), но через REST.
 
 ### 1. Логин
 
@@ -417,6 +417,7 @@ curl -s -X POST "http://localhost:8080/consumer/request/relay-kitchen" \
 
 ## Связанные материалы
 
-- [README_RUS.md](../../README_RUS.md) — общий обзор, MQTT-алгоритм, запуск
+- [README_RUS.md](../../README_RUS.md) — общий обзор, запуск
+- [MQTT_API_RUS.md](../mqtt/MQTT_API_RUS.md) — MQTT-топики и порядок обмена
 - [SWAGGER_AUTH_RUS.md](../swagger/SWAGGER_AUTH_RUS.md) — JWT в Swagger UI
 - Тестовые HTTP-клиенты: `src/test/kotlin/com/duster/pd/rest/ProducerRest.kt`, `ConsumerRest.kt`

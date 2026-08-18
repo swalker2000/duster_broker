@@ -127,7 +127,7 @@ Response: `{ "decision": true }` or `{ "decision": false }`.
 
 ## Typical flow (producer → consumer)
 
-Below is the REST equivalent of the MQTT algorithm from the README.
+Below is the REST equivalent of the MQTT flow in [MQTT_API.md](../mqtt/MQTT_API.md).
 
 ### 1. Login
 
@@ -417,6 +417,7 @@ curl -s -X POST "http://localhost:8080/consumer/request/relay-kitchen" \
 
 ## Related materials
 
-- [README.md](../../README.md) — overview, MQTT flow, how to run
+- [README.md](../../README.md) — overview, how to run
+- [MQTT_API.md](../mqtt/MQTT_API.md) — MQTT topics and exchange order
 - [SWAGGER_AUTH.md](../swagger/SWAGGER_AUTH.md) — JWT in Swagger UI
 - Test HTTP clients: `src/test/kotlin/com/duster/pd/rest/ProducerRest.kt`, `ConsumerRest.kt`
