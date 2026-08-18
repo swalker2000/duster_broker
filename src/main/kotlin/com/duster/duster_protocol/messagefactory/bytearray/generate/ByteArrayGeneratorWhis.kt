@@ -1,5 +1,6 @@
-package com.duster.duster_protocol.messagefactory.generators.service
+package com.duster.duster_protocol.messagefactory.bytearray.generate
 
+import com.duster.database.data.client.Role
 import com.duster.duster_protocol.messagefactory.transport.TransportLayByteGetter
 import com.duster.duster_protocol.messagefactory.transport.constant.DbpMessageType
 import com.duster.transport.data.dto.consumer.ConsumerMessageInDto
@@ -28,6 +29,21 @@ object ByteArrayGeneratorWhis {
              */
             fun dontHaveMessage(): List<Int> {
                 return  transportLayByteGetter.getTransmitDateFromPayload(DbpMessageType.BROKER_DONT_HAVE_MESSAGE_FOR_CONSUMER)
+            }
+
+            /**
+             * Ответ на логин консьюмера: успех с JWT или отказ (как `POST /auth/login` / 401).
+             */
+            fun loginResult(
+                ok: Boolean,
+                deviseId: String = "",
+                role: Role = Role.DEVISE,
+                accessToken: String = ""
+            ): List<Int> {
+                return transportLayByteGetter.getTransmitDateFromPayload(
+                    DbpMessageType.BROKER_CONSUMER_LOGIN_RESULT,
+                    loginResultPayload(ok, deviseId, role, accessToken)
+                )
             }
 
             /**
@@ -62,6 +78,21 @@ object ByteArrayGeneratorWhis {
                 return transportLayByteGetter.getTransmitDateFromPayload(
                     DbpMessageType.BROKER_RETURN_MESSAGE_STATUS_TO_PRODUCER,
                     payload
+                )
+            }
+
+            /**
+             * Ответ на логин продюсера: успех с JWT или отказ (как `POST /auth/login` / 401).
+             */
+            fun loginResult(
+                ok: Boolean,
+                deviseId: String = "",
+                role: Role = Role.DEVISE,
+                accessToken: String = ""
+            ): List<Int> {
+                return transportLayByteGetter.getTransmitDateFromPayload(
+                    DbpMessageType.BROKER_PRODUCER_LOGIN_RESULT,
+                    loginResultPayload(ok, deviseId, role, accessToken)
                 )
             }
 
@@ -104,6 +135,17 @@ object ByteArrayGeneratorWhis {
         {
             return  transportLayByteGetter.getTransmitDateFromPayload(DbpMessageType.CONSUMER_ASK_MESSAGE)
         }
+
+        /**
+         * Консьюмер логинится: `deviseId` + пароль (как тело REST `POST /auth/login`).
+         * Устройство должно уже существовать в [com.duster.database.data.client.Client] (создание — `POST /admin/api/clients`).
+         */
+        fun login(deviseId: String, password: String): List<Int> {
+            return transportLayByteGetter.getTransmitDateFromPayload(
+                DbpMessageType.CONSUMER_LOGIN,
+                loginPayload(deviseId, password)
+            )
+        }
     }
 
     object FromProducer {//ProducerDeliveryStatusOutDto
@@ -138,10 +180,16 @@ object ByteArrayGeneratorWhis {
             return transportLayByteGetter.getTransmitDateFromPayload(DbpMessageType.PRODUCER_SEND_MESSAGE, payload)
         }
 
-
-
-
-
+        /**
+         * Продюсер логинится: `deviseId` + пароль (как тело REST `POST /auth/login`).
+         * Устройство должно уже существовать в [com.duster.database.data.client.Client] (создание — `POST /admin/api/clients`).
+         */
+        fun login(deviseId: String, password: String): List<Int> {
+            return transportLayByteGetter.getTransmitDateFromPayload(
+                DbpMessageType.PRODUCER_LOGIN,
+                loginPayload(deviseId, password)
+            )
+        }
     }
 
     private fun getBytes(value : Long) : List<Int>
@@ -161,5 +209,26 @@ object ByteArrayGeneratorWhis {
     /** Little-endian unsigned short (2 байта). */
     private fun getBytes2(value: Int): List<Int> =
         listOf(value and 0xFF, (value shr 8) and 0xFF)
+
+    private fun utf8WithLen(value: String): List<Int> {
+        val bytes = value.toByteArray(Charsets.UTF_8).map { it.toInt() and 0xFF }
+        return getBytes2(bytes.size) + bytes
+    }
+
+    private fun loginPayload(deviseId: String, password: String): List<Int> {
+        val payload: MutableList<Int> = mutableListOf()
+        payload.addAll(utf8WithLen(deviseId))
+        payload.addAll(utf8WithLen(password))
+        return payload
+    }
+
+    private fun loginResultPayload(ok: Boolean, deviseId: String, role: Role, accessToken: String): List<Int> {
+        val payload: MutableList<Int> = mutableListOf()
+        payload.add(if (ok) 1 else 0)
+        payload.add(role.ordinal)
+        payload.addAll(utf8WithLen(deviseId))
+        payload.addAll(utf8WithLen(if (ok) accessToken else ""))
+        return payload
+    }
 
 }

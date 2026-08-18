@@ -34,10 +34,16 @@ enum class DbpMessageType(val code: Int) {
     CONSUMER_MESSAGE_RECEIVED(0xC4),
 
     /**
-     * Консъюмер логинится.
-     *  - передает свой id.
+     * Консъюмер логинится (аналог REST `POST /auth/login`).
+     * Payload: deviseIdLen[2 LE] + deviseId UTF-8 + passwordLen[2 LE] + password UTF-8.
      */
     CONSUMER_LOGIN(0xC5),
+
+    /**
+     * Брокер отвечает консьюмеру на логин (аналог JSON ответа `/auth/login` / 401).
+     * Payload: ok[1] + roleOrdinal[1] + deviseIdLen[2 LE] + deviseId UTF-8 + tokenLen[2 LE] + accessToken UTF-8.
+     */
+    BROKER_CONSUMER_LOGIN_RESULT(0xC6),
 
 
     //********BROKER-PRODUCER************
@@ -64,8 +70,14 @@ enum class DbpMessageType(val code: Int) {
 
 
     /**
-     * Продюсер логинится.
-     *  - передает свой id.
+     * Продюсер логинится (аналог REST `POST /auth/login`).
+     * Payload: deviseIdLen[2 LE] + deviseId UTF-8 + passwordLen[2 LE] + password UTF-8.
      */
-    PRODUCER_LOGIN(0xC5),
+    PRODUCER_LOGIN(0xB5),
+
+    /**
+     * Брокер отвечает продюсеру на логин (аналог JSON ответа `/auth/login` / 401).
+     * Payload: ok[1] + roleOrdinal[1] + deviseIdLen[2 LE] + deviseId UTF-8 + tokenLen[2 LE] + accessToken UTF-8.
+     */
+    BROKER_PRODUCER_LOGIN_RESULT(0xB6),
 }
