@@ -33,6 +33,12 @@ enum class DbpMessageType(val code: Int) {
      */
     CONSUMER_MESSAGE_RECEIVED(0xC4),
 
+    /**
+     * Консъюмер логинится.
+     *  - передает свой id.
+     */
+    CONSUMER_LOGIN(0xC5),
+
 
     //********BROKER-PRODUCER************
 
@@ -55,4 +61,11 @@ enum class DbpMessageType(val code: Int) {
      *  Брокер сообщает продюсеру, статус его сообщения.
      */
     BROKER_RETURN_MESSAGE_STATUS_TO_PRODUCER(0xB4),
+
+
+    /**
+     * Продюсер логинится.
+     *  - передает свой id.
+     */
+    PRODUCER_LOGIN(0xC5),
 }
