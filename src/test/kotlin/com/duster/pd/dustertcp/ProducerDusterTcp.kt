@@ -47,13 +47,10 @@ class ProducerDusterTcp(
         val initial = producerClient(consumerDeviseId).sendMessage(message)
         val cert = message.messageBirthCertificate
         if (onMessageStatusChange != null && cert != null) {
-            val poller = Thread(
-                { pollMessageStatus(initial.id, cert.tmpId, initial.deliveryStatus) },
-                "producer-duster-tcp-status-${initial.id}"
-            )
-            poller.isDaemon = true
+            val poller = Thread.ofVirtual()
+                .name("producer-duster-tcp-status-${initial.id}")
+                .start { pollMessageStatus(initial.id, cert.tmpId, initial.deliveryStatus) }
             pollThreadRef.set(poller)
-            poller.start()
         }
     }
 

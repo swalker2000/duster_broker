@@ -30,10 +30,9 @@ class ConsumerDusterTcp(
         if (active) return
         lastNotifiedId = null
         active = true
-        val thread = Thread({ pollLoop() }, "consumer-duster-tcp-poll-$deviseId")
-        thread.isDaemon = true
-        pollThread = thread
-        thread.start()
+        pollThread = Thread.ofVirtual()
+            .name("consumer-duster-tcp-poll-$deviseId")
+            .start { pollLoop() }
     }
 
     override fun disconnect() {

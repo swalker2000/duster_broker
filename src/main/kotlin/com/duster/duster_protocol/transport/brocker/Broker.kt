@@ -33,9 +33,9 @@ class Broker(private val bindPort: Int = 0) {
     private val detector = MessageDetector()
     private val running = AtomicBoolean(false)
 
-    private val executor = Executors.newCachedThreadPool { runnable ->
-        Thread(runnable, "duster-dbp-broker").apply { isDaemon = true }
-    }
+    private val executor = Executors.newThreadPerTaskExecutor(
+        Thread.ofVirtual().name("duster-dbp-", 0).factory()
+    )
 
     @Volatile
     private var serverSocket: ServerSocket? = null
