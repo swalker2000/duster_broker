@@ -9,13 +9,17 @@ import com.duster.duster_protocol.transport.client.LoginFailedException
 import com.duster.transport.data.dto.producer.ProducerDeliveryStatusOutDto
 import com.duster.transport.data.dto.producer.message.ProducerMessageInDto
 import com.duster.transport.data.dto.producer.message.ProducerMessageOutDto
+import javax.net.ssl.SSLSocketFactory
 
 class ProducerTcp(
     deviseId: String,
     url: String,
     port: Int,
-    password: String = ""
-) : Client(deviseId, url, port, password) {
+    password: String = "",
+    useTls: Boolean = false,
+    insecureTls: Boolean = true,
+    sslSocketFactory: SSLSocketFactory? = null
+) : Client(deviseId, url, port, password, useTls, insecureTls, sslSocketFactory) {
 
     /**
      * Продюсер запрашивает статус сообщения.

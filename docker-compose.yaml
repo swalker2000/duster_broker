@@ -28,8 +28,15 @@ services:
       # --- Rest ---
       REST_SERVER_ADDRESS: "0.0.0.0"
 
-      # --- Duster TCP protocol ---
+      # --- Duster protocol ---
+      # Нешифрованное TCP. false — слушается только TLS.
+      DUSTER_PROTOCOL_TCP_ENABLED: "true"
       DUSTER_PROTOCOL_TCP_PORT: "9091"
+      DUSTER_PROTOCOL_TLS_ENABLED: "true"
+      DUSTER_PROTOCOL_TLS_PORT: "9092"
+      # PKCS12. Пусто — эфемерный self-signed сертификат при старте.
+      DUSTER_PROTOCOL_TLS_KEYSTORE: ""
+      DUSTER_PROTOCOL_TLS_KEYSTORE_PASSWORD: ""
 
       # --- Common ---
       COMMON_CHECK_NOT_DELIVERED_TIMEOUT: "60000"
@@ -41,6 +48,7 @@ services:
     ports:
       - "8080:8080"
       - "9091:9091"
+      - "9092:9092"
     restart: unless-stopped
     networks:
       - duster-net

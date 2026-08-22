@@ -12,7 +12,13 @@ server:
 duster:
   protocol:
     tcp:
+      enabled: ${DUSTER_PROTOCOL_TCP_ENABLED:true}
       port: ${DUSTER_PROTOCOL_TCP_PORT:9091}
+    tls:
+      enabled: ${DUSTER_PROTOCOL_TLS_ENABLED:true}
+      port: ${DUSTER_PROTOCOL_TLS_PORT:9092}
+      keystore: ${DUSTER_PROTOCOL_TLS_KEYSTORE:}
+      keystore-password: ${DUSTER_PROTOCOL_TLS_KEYSTORE_PASSWORD:}
 
 common:
   checkNotDeliveredTimeout: ${COMMON_CHECK_NOT_DELIVERED_TIMEOUT:60000}

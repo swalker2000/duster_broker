@@ -21,7 +21,8 @@ class ProducerDusterTcp(
     private val host: String,
     private val port: Int,
     override val deviceId: String = "0",
-    private val password: String = ""
+    private val password: String = "",
+    private val useTls: Boolean = false
 ) : Producer {
 
     private val statusChangeHandlerRef = AtomicReference<Producer.OnMessageStatusChange?>(null)
@@ -78,7 +79,7 @@ class ProducerDusterTcp(
         runCatching { producerClient(deviceId).askMessageStatus(messageId) }.getOrNull()
 
     private fun producerClient(loginAs: String): ProducerTcp =
-        ProducerTcp(loginAs, host, port, password)
+        ProducerTcp(loginAs, host, port, password, useTls = useTls)
 
     private fun isTerminalForPolling(status: DeliveryStatus): Boolean =
         when (status) {

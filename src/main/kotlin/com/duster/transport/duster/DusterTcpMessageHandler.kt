@@ -6,6 +6,7 @@ import com.duster.database.data.client.Role
 import com.duster.duster_protocol.messagefactory.bytearray.parse.dto.LoginCredentials
 import com.duster.duster_protocol.messagefactory.bytearray.parse.dto.LoginResult
 import com.duster.duster_protocol.transport.brocker.Broker
+import com.duster.duster_protocol.transport.ssl.DusterProtocolSsl
 import com.duster.security.AppSecurityProperties
 import com.duster.security.ClientPasswords
 import com.duster.security.JwtService
@@ -14,6 +15,7 @@ import jakarta.annotation.PostConstruct
 import jakarta.annotation.PreDestroy
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.core.io.ResourceLoader
 import org.springframework.http.HttpStatus
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
@@ -34,7 +36,13 @@ class DusterTcpMessageHandler(
     private val clientRepository: ClientRepository,
     private val passwordEncoder: PasswordEncoder,
     private val jwtService: JwtService,
-    @Value("\${duster.protocol.tcp.port:9091}") private val bindPort: Int
+    private val resourceLoader: ResourceLoader,
+    @Value("\${duster.protocol.tcp.enabled:true}") private val tcpEnabled: Boolean,
+    @Value("\${duster.protocol.tcp.port:9091}") private val bindPort: Int,
+    @Value("\${duster.protocol.tls.enabled:true}") private val tlsEnabled: Boolean,
+    @Value("\${duster.protocol.tls.port:9092}") private val tlsBindPort: Int,
+    @Value("\${duster.protocol.tls.keystore:}") private val tlsKeystore: String,
+    @Value("\${duster.protocol.tls.keystore-password:}") private val tlsKeystorePassword: String
 ) {
 
     private val logger = LoggerFactory.getLogger(DusterTcpMessageHandler::class.java)
@@ -44,9 +52,21 @@ class DusterTcpMessageHandler(
     val port: Int
         get() = broker.port
 
+    val tlsPort: Int
+        get() = broker.tlsPort
+
     @PostConstruct
     fun start() {
-        val server = Broker(bindPort)
+        require(tcpEnabled || tlsEnabled) {
+            "Enable at least one Duster protocol listener: duster.protocol.tcp.enabled or duster.protocol.tls.enabled"
+        }
+        val sslContext = if (tlsEnabled) createSslContext() else null
+        val server = Broker(
+            bindPort = bindPort,
+            enablePlain = tcpEnabled,
+            tlsBindPort = tlsBindPort,
+            sslContext = sslContext
+        )
         server.onLogin { credentials, _ -> authenticate(credentials) }
         server.connectionToProducer.onSendMessage { deviceId, message ->
             logger.info("newProducerMessageIn [$deviceId]")
@@ -68,7 +88,12 @@ class DusterTcpMessageHandler(
         }
         server.start()
         broker = server
-        logger.info("Duster TCP protocol listening on port {}", port)
+        if (tcpEnabled) {
+            logger.info("Duster TCP protocol listening on port {}", port)
+        }
+        if (tlsEnabled) {
+            logger.info("Duster TLS protocol listening on port {}", tlsPort)
+        }
     }
 
     @PreDestroy
@@ -115,4 +140,14 @@ class DusterTcpMessageHandler(
         }
         return message
     }
+
+    private fun createSslContext() =
+        if (tlsKeystore.isBlank()) {
+            logger.warn("duster.protocol.tls.keystore is empty; generating an ephemeral self-signed certificate")
+            DusterProtocolSsl.selfSignedServerContext()
+        } else {
+            val resource = resourceLoader.getResource(tlsKeystore)
+            check(resource.exists()) { "TLS keystore not found: $tlsKeystore" }
+            DusterProtocolSsl.serverContext(resource.inputStream, tlsKeystorePassword)
+        }
 }

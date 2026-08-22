@@ -104,7 +104,25 @@ class SmokeTestPd {
         return ProducerAndConsumer(producer, consumer)
     }
 
+    private fun generateDusterTlsProducerAndConsumerForFromProducerToConsumerNoSubscribeTest(): ProducerAndConsumer {
+        val host = "127.0.0.1"
+        val port = dusterTcpMessageHandler.tlsPort
+        val deviceId = "pd-dbp-tls-no-sub-${System.currentTimeMillis()}"
 
+        val consumer = ConsumerDusterTcp(host, port, deviceId, useTls = true)
+        val producer = ProducerDusterTcp(host, port, deviceId, useTls = true)
+        return ProducerAndConsumer(producer, consumer)
+    }
+
+    private fun generateDusterTlsProducerAndConsumerForFromProducerToConsumerWhisSubscribeTest(): ProducerAndConsumer {
+        val host = "127.0.0.1"
+        val port = dusterTcpMessageHandler.tlsPort
+        val deviceId = "pd-dbp-tls-with-sub-${System.currentTimeMillis()}"
+
+        val consumer = ConsumerDusterTcp(host, port, deviceId, useTls = true)
+        val producer = ProducerDusterTcp(host, port, deviceId = "0", useTls = true)
+        return ProducerAndConsumer(producer, consumer)
+    }
 
     private fun brokerUrl(): String {
         assertTrue(env.activeProfiles.contains("test"), "Должен быть активен профиль test")
@@ -157,6 +175,22 @@ class SmokeTestPd {
         fromProducerToConsumerWhisSubscribeTest(
             dusterTcpProducerAndConsumerForFromProducerToConsumerWhisSubscribeTest.producer,
             dusterTcpProducerAndConsumerForFromProducerToConsumerWhisSubscribeTest.consumer
+        )
+        logger.info("=============DUSTER TLS START====================")
+
+        logger.info("fromProducerToConsumerNoSubscribeTest")
+        val dusterTlsProducerAndConsumerForFromProducerToConsumerNoSubscribeTest =
+            generateDusterTlsProducerAndConsumerForFromProducerToConsumerNoSubscribeTest()
+        fromProducerToConsumerNoSubscribeTest(
+            dusterTlsProducerAndConsumerForFromProducerToConsumerNoSubscribeTest.producer,
+            dusterTlsProducerAndConsumerForFromProducerToConsumerNoSubscribeTest.consumer
+        )
+        logger.info("dusterTlsProducerAndConsumerForFromProducerToConsumerWhisSubscribeTest")
+        val dusterTlsProducerAndConsumerForFromProducerToConsumerWhisSubscribeTest =
+            generateDusterTlsProducerAndConsumerForFromProducerToConsumerWhisSubscribeTest()
+        fromProducerToConsumerWhisSubscribeTest(
+            dusterTlsProducerAndConsumerForFromProducerToConsumerWhisSubscribeTest.producer,
+            dusterTlsProducerAndConsumerForFromProducerToConsumerWhisSubscribeTest.consumer
         )
     }
 

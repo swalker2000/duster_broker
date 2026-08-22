@@ -20,6 +20,7 @@ WORKDIR /app
 
 EXPOSE 8080
 EXPOSE 9091
+EXPOSE 9092
 
 COPY --from=build /app/build/libs/*.jar /app/app.jar
 

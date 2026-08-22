@@ -15,10 +15,11 @@ class ConsumerDusterTcp(
     port: Int,
     deviseId: String,
     password: String = "",
-    private val pollIntervalMs: Long = 200L
+    private val pollIntervalMs: Long = 200L,
+    useTls: Boolean = false
 ) : Consumer(deviseId) {
 
-    private val tcp = ConsumerTcp(deviseId, host, port, password)
+    private val tcp = ConsumerTcp(deviseId, host, port, password, useTls = useTls)
 
     @Volatile
     private var active: Boolean = false

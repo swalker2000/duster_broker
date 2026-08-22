@@ -9,13 +9,17 @@ import com.duster.duster_protocol.transport.client.Client
 import com.duster.duster_protocol.transport.client.LoginFailedException
 import com.duster.transport.data.dto.consumer.ConsumerMessageInDto
 import com.duster.transport.data.dto.consumer.ConsumerMessageOutDto
+import javax.net.ssl.SSLSocketFactory
 
 class ConsumerTcp(
     deviseId: String,
     url: String,
     port: Int,
-    password: String = ""
-) : Client(deviseId, url, port, password) {
+    password: String = "",
+    useTls: Boolean = false,
+    insecureTls: Boolean = true,
+    sslSocketFactory: SSLSocketFactory? = null
+) : Client(deviseId, url, port, password, useTls, insecureTls, sslSocketFactory) {
 
     private val detector = MessageDetector()
 
