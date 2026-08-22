@@ -1,7 +1,9 @@
 HELP.md
+tmp/**
 .gradle
 .env
 build/
+*.p12
 !gradle/wrapper/gradle-wrapper.jar
 !**/src/main/**/build/
 !**/src/test/**/build/

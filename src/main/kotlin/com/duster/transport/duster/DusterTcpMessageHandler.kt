@@ -15,6 +15,8 @@ import jakarta.annotation.PostConstruct
 import jakarta.annotation.PreDestroy
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.core.io.FileSystemResource
+import org.springframework.core.io.Resource
 import org.springframework.core.io.ResourceLoader
 import org.springframework.http.HttpStatus
 import org.springframework.security.crypto.password.PasswordEncoder
@@ -146,8 +148,23 @@ class DusterTcpMessageHandler(
             logger.warn("duster.protocol.tls.keystore is empty; generating an ephemeral self-signed certificate")
             DusterProtocolSsl.selfSignedServerContext()
         } else {
-            val resource = resourceLoader.getResource(tlsKeystore)
-            check(resource.exists()) { "TLS keystore not found: $tlsKeystore" }
+            val resource = resolveKeystore(tlsKeystore)
+            check(resource.exists()) {
+                "TLS keystore not found: $tlsKeystore. " +
+                    "Use a filesystem path or a Spring Resource (file:/... or classpath:...). " +
+                    "In Docker put the PKCS12 under ./cert (copied to /app/certs) and set file:/app/certs/..."
+            }
             DusterProtocolSsl.serverContext(resource.inputStream, tlsKeystorePassword)
         }
+
+    /**
+     * Без префикса Spring грузит servlet-ресурс; `..` Tomcat отвергает.
+     */
+    private fun resolveKeystore(location: String): Resource {
+        val trimmed = location.trim()
+        if (trimmed.startsWith("classpath:") || trimmed.startsWith("file:")) {
+            return resourceLoader.getResource(trimmed)
+        }
+        return FileSystemResource(trimmed)
+    }
 }

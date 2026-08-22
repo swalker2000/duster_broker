@@ -1,3 +1,4 @@
+# syntax=docker/dockerfile:1
 # ---------- build stage ----------
 FROM eclipse-temurin:21-jdk AS build
 WORKDIR /app
@@ -23,5 +24,10 @@ EXPOSE 9091
 EXPOSE 9092
 
 COPY --from=build /app/build/libs/*.jar /app/app.jar
+
+# ./cert из контекста сборки → /app/certs. Нет папки — слой пустой, сборка не падает.
+RUN mkdir -p /app/certs
+RUN --mount=type=bind,target=/src \
+    if [ -d /src/cert ]; then cp -a /src/cert/. /app/certs/; fi
 
 ENTRYPOINT ["java","-jar","/app/app.jar"]
