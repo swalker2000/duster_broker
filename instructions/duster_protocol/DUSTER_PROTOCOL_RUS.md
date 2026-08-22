@@ -2,7 +2,7 @@
 
 Бинарный протокол поверх TCP. Порты по умолчанию: `9091` без TLS (`DUSTER_PROTOCOL_TCP_PORT`) и `9092` с TLS (`DUSTER_PROTOCOL_TLS_PORT`). Нешифрованный слушатель включается флагом `duster.protocol.tcp.enabled` / `DUSTER_PROTOCOL_TCP_ENABLED`.
 
-Сертификат для TLS-клиентов: [tls/TLS_RUS.md](tls/TLS_RUS.md).
+Сертификат для TLS-клиентов: [tls/TLS_RUS.md](tls/TLS_RUS.md) или  [tls/TLS_SIMPLE_RUS.md](tls/TLS_RUS.md).
 
 Идентификатор устройства в протоколе: **`deviseId`**.
 

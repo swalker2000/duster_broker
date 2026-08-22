@@ -10,9 +10,11 @@
 
 Берётся **тот же сертификат**, который слушает брокер на порту TLS.
 
-Его нет «внутри репозитория по умолчанию». Если в конфиге `duster.protocol.tls.keystore` / `DUSTER_PROTOCOL_TLS_KEYSTORE` **пустой**, брокер при старте создаёт **эфемерный** self-signed сертификат в памяти. Файла нет, после перезапуска сертификат другой — раздавать устройствам его нельзя.
+Его нет в репозитории. Если `duster.protocol.tls.keystore` / `DUSTER_PROTOCOL_TLS_KEYSTORE` **пустой** (так в `docker-compose.yaml` по умолчанию), брокер при старте создаёт **эфемерный** self-signed сертификат в памяти. Файла нет, после перезапуска сертификат другой — раздавать устройствам его нельзя.
 
-Для клиентов нужен **постоянный** PKCS12 на сервере и экспорт из него `.crt` / `.pem`.
+Для продакшена нужен **постоянный** PKCS12 и экспорт из него `.crt` / `.pem`.
+
+`docker compose up -d` **без** PKCS12 и без `DUSTER_PROTOCOL_TLS_*` для Duster Protocol TLS **запустится**: слушатель `9092` поднимет эфемерный сертификат. Нужен только корневой `.env` с MQTT (см. README): `MQTT_BROKER_USERNAME`, `MQTT_BROKER_PASSWORD`, `MQTT_PORT`, `WEBSOCKET_PORT`. Без этого файла Compose не подставит порты и логин MQTT.
 
 ## 1. Сгенерировать keystore для брокера
 
@@ -60,7 +62,37 @@ openssl pkcs12 -in duster-protocol.p12 -nokeys -clcerts -passin pass:changeit -o
 
 ## 3. Указать keystore брокеру
 
-`application.yml`:
+Формат файла: **PKCS12**. Путь может быть:
+
+- Spring Resource: `file:...` или `classpath:...`;
+- обычный путь на диске (абсолютный или относительно working directory процесса). Без префикса `file:` / `classpath:` это **файл**, не servlet-ресурс. Путь с `..` с хоста в контейнер сам не попадает.
+
+### Docker Compose
+
+При сборке образа Dockerfile копирует содержимое `./cert` (если папка есть) в **`/app/certs`**. Если `cert/` нет, сборка не падает, каталог в образе пустой.
+
+1. Положите PKCS12 в корень репозитория, например:
+
+   `cert/duster/duster-protocol.p12`
+
+2. В `.env` рядом с `docker-compose.yaml`:
+
+```
+DUSTER_PROTOCOL_TLS_KEYSTORE=file:/app/certs/duster/duster-protocol.p12
+DUSTER_PROTOCOL_TLS_KEYSTORE_PASSWORD=changeit
+```
+
+Путь после `/app/certs/` совпадает с путём **внутри** `cert/`. Файл `cert/duster-protocol.p12` → `file:/app/certs/duster-protocol.p12`.
+
+3. Пересоберите образ (слой с сертификатом не подхватится сам):
+
+```bash
+docker compose build duster && docker compose up -d
+```
+
+Volume для Duster Protocol TLS нет: файл живёт в образе.
+
+### Без Docker (`application.yml`)
 
 ```yaml
 duster:
@@ -70,18 +102,6 @@ duster:
       port: 9092
       keystore: file:/absolute/path/duster-protocol.p12
       keystore-password: changeit
-```
-
-`keystore` — путь Spring Resource (`file:...` или `classpath:...`). Формат: **PKCS12**.
-
-Docker Compose: смонтируйте файл в контейнер и задайте переменные:
-
-```yaml
-environment:
-  DUSTER_PROTOCOL_TLS_KEYSTORE: file:/app/certs/duster-protocol.p12
-  DUSTER_PROTOCOL_TLS_KEYSTORE_PASSWORD: changeit
-volumes:
-  - ./certs/duster-protocol.p12:/app/certs/duster-protocol.p12:ro
 ```
 
 После смены keystore брокер нужно перезапустить.

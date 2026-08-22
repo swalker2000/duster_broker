@@ -10,9 +10,11 @@ Never distribute the server private key to clients.
 
 Use **the same certificate** the broker presents on the TLS port.
 
-It is not shipped in the repository. If `duster.protocol.tls.keystore` / `DUSTER_PROTOCOL_TLS_KEYSTORE` is **empty**, the broker generates an **ephemeral** self-signed certificate in memory at startup. There is no file on disk, and the certificate changes after a restart — do not pin that on devices.
+It is not shipped in the repository. If `duster.protocol.tls.keystore` / `DUSTER_PROTOCOL_TLS_KEYSTORE` is **empty** (the default in `docker-compose.yaml`), the broker generates an **ephemeral** self-signed certificate in memory at startup. There is no file on disk, and the certificate changes after a restart — do not pin that on devices.
 
-For clients you need a **persistent** PKCS12 on the server and an exported `.crt` / `.pem` from it.
+For production you need a **persistent** PKCS12 and an exported `.crt` / `.pem` from it.
+
+`docker compose up -d` **without** a PKCS12 and without `DUSTER_PROTOCOL_TLS_*` **will start** the Duster Protocol TLS listener on `9092` with that ephemeral certificate. You still need a root `.env` for MQTT (see the README): `MQTT_BROKER_USERNAME`, `MQTT_BROKER_PASSWORD`, `MQTT_PORT`, `WEBSOCKET_PORT`. Without it Compose will not fill MQTT ports and credentials.
 
 ## 1. Generate a keystore for the broker
 
@@ -60,7 +62,37 @@ openssl pkcs12 -in duster-protocol.p12 -nokeys -clcerts -passin pass:changeit -o
 
 ## 3. Point the broker at the keystore
 
-`application.yml`:
+File format: **PKCS12**. The path may be:
+
+- a Spring Resource: `file:...` or `classpath:...`;
+- a filesystem path (absolute or relative to the process working directory). Without a `file:` / `classpath:` prefix it is a **file**, not a servlet resource. A host path with `..` is not visible inside the container unless the file is copied into the image.
+
+### Docker Compose
+
+On image build the Dockerfile copies `./cert` (if that directory exists) into **`/app/certs`**. If `cert/` is missing, the build still succeeds and `/app/certs` is empty.
+
+1. Put the PKCS12 under the repository root, for example:
+
+   `cert/duster/duster-protocol.p12`
+
+2. In `.env` next to `docker-compose.yaml`:
+
+```
+DUSTER_PROTOCOL_TLS_KEYSTORE=file:/app/certs/duster/duster-protocol.p12
+DUSTER_PROTOCOL_TLS_KEYSTORE_PASSWORD=changeit
+```
+
+The path after `/app/certs/` matches the path **inside** `cert/`. A file at `cert/duster-protocol.p12` → `file:/app/certs/duster-protocol.p12`.
+
+3. Rebuild the image (the cert layer is not picked up otherwise):
+
+```bash
+docker compose build duster && docker compose up -d
+```
+
+There is no volume for Duster Protocol TLS: the file lives in the image.
+
+### Without Docker (`application.yml`)
 
 ```yaml
 duster:
@@ -70,18 +102,6 @@ duster:
       port: 9092
       keystore: file:/absolute/path/duster-protocol.p12
       keystore-password: changeit
-```
-
-`keystore` is a Spring Resource path (`file:...` or `classpath:...`). Format: **PKCS12**.
-
-Docker Compose: mount the file and set:
-
-```yaml
-environment:
-  DUSTER_PROTOCOL_TLS_KEYSTORE: file:/app/certs/duster-protocol.p12
-  DUSTER_PROTOCOL_TLS_KEYSTORE_PASSWORD: changeit
-volumes:
-  - ./certs/duster-protocol.p12:/app/certs/duster-protocol.p12:ro
 ```
 
 Restart the broker after changing the keystore.

@@ -2,7 +2,7 @@
 
 Binary protocol over TCP. Default ports: `9091` without TLS (`DUSTER_PROTOCOL_TCP_PORT`) and `9092` with TLS (`DUSTER_PROTOCOL_TLS_PORT`). The plaintext listener is controlled by `duster.protocol.tcp.enabled` / `DUSTER_PROTOCOL_TCP_ENABLED`.
 
-TLS certificate for clients: [tls/TLS.md](tls/TLS.md).
+TLS certificate for clients: [tls/TLS.md](tls/TLS.md) or  [tls/TLS_SIMPLE.md](tls/TLS_RUS.md).
 
 Device identifier in the protocol: **`deviseId`**.
 
