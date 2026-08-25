@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Duster Broker — MQTT Delivery Guarantee Service</title>
+    <title>Duster Broker — IoT message broker with delivery guarantees</title>
     <link rel="stylesheet" href="../css/style.css">
 </head>
 <body>
@@ -13,7 +13,7 @@
 </div>
 <header>
     <h1>🚀 Duster Broker</h1>
-    <p>MQTT-based message broker with delivery guarantees, status tracking, and rate limiting for IoT</p>
+    <p>IoT message broker with delivery guarantees, status tracking, and rate limiting</p>
 </header>
 <nav>
     <a href="#about">About</a>
@@ -26,7 +26,7 @@
 <div class="container">
     <section id="about">
         <h2>📖 About</h2>
-        <p><strong>Duster Broker</strong> -  is a middle layer on top of MQTT, with delivery guarantees, status tracking, and rate limiting for the Internet of Things. Supports ESP32, REST API, Docker. </p>
+        <p><strong>Duster Broker</strong> is a full-fledged IoT message broker with delivery guarantees, status tracking, and rate limiting. Clients connect over the binary Duster Protocol, MQTT, or REST API. Supports ESP32 and Docker.</p>
         <p>Stack: Kotlin + Spring Boot, PostgreSQL, Docker.</p>
     </section>
     <section id="features">
@@ -35,12 +35,13 @@
             <li><strong>Delivery guarantees:</strong> <code>ONLY_LAST</code>, <code>RECEIPT_CONFIRMATION</code>, <code>NO</code>.</li>
             <li><strong>Rate limiting:</strong> prevents buffer overflow on constrained devices.</li>
             <li><strong>Status tracking:</strong> <code>NOT_DELIVERED</code>, <code>DELIVERED</code>, <code>COMPLETED</code>, <code>COMPLETED_WITH_ERROR</code>.</li>
-            <li><strong>Dual interface:</strong> MQTT + REST API (Swagger docs at <code>/swagger-ui.html</code>).</li>
+            <li><strong>Transports:</strong> binary Duster Protocol, MQTT, and REST API (Swagger docs at <code>/swagger-ui.html</code>).</li>
             <li><strong>Admin panel:</strong> <code>http://localhost:8080</code> (login/password: <code>admin/admin</code>).</li>
         </ul>
     </section>
     <section id="workflow">
         <h2>🔄 Workflow</h2>
+        <p>The same producer/consumer flow works over any transport. Example over MQTT:</p>
         <ol>
             <li>Producer sends <code>ProducerMessageInDto</code> to <code>producer/request/{deviceId}</code>.</li>
             <li>A <code>ConsumerMessageOutDto</code> with a unique ID is created.</li>

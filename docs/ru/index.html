@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Duster Broker — MQTT брокер с гарантией доставки</title>
+    <title>Duster Broker — IoT-брокер с гарантией доставки</title>
     <link rel="stylesheet" href="../css/style.css">
 </head>
 <body>
@@ -13,7 +13,7 @@
 </div>
 <header>
     <h1>🚀 Duster Broker</h1>
-    <p>MQTT-брокер с гарантией доставки, отслеживанием статусов и ограничением скорости для IoT</p>
+    <p>Брокер сообщений для IoT с гарантией доставки, отслеживанием статусов и ограничением скорости</p>
 </header>
 <nav>
     <a href="#about">О проекте</a>
@@ -26,7 +26,7 @@
 <div class="container">
     <section id="about">
         <h2>📖 О проекте</h2>
-        <p><strong>Duster Broker</strong> — это промежуточный слой над MQTT, с гарантиями доставки, отслеживанием статуса и ограничением скорости для Интернета вещей. Поддерживает ESP32, REST API, Docker.</p>
+        <p><strong>Duster Broker</strong> — полноценный брокер сообщений для Интернета вещей: гарантии доставки, отслеживание статуса и ограничение скорости. Клиенты подключаются по бинарному Duster Protocol, MQTT или REST API. Поддерживает ESP32 и Docker.</p>
         <p>Стек: Kotlin + Spring Boot, PostgreSQL, Docker.</p>
     </section>
     <section id="features">
@@ -35,12 +35,13 @@
             <li><strong>Гарантии доставки:</strong> <code>ONLY_LAST</code> (только последнее), <code>RECEIPT_CONFIRMATION</code> (все сообщения), <code>NO</code> (без гарантии).</li>
             <li><strong>Контроль потока:</strong> ограничение интервала отправки, чтобы не переполнить буфер устройства.</li>
             <li><strong>Отслеживание статусов:</strong> <code>NOT_DELIVERED</code>, <code>DELIVERED</code>, <code>COMPLETED</code>, <code>COMPLETED_WITH_ERROR</code>.</li>
-            <li><strong>Двойной интерфейс:</strong> MQTT + REST API (документация через Swagger).</li>
+            <li><strong>Транспорты:</strong> бинарный Duster Protocol, MQTT и REST API (документация через Swagger).</li>
             <li><strong>Админ-панель:</strong> <code>http://localhost:8080</code> (логин/пароль: <code>admin/admin</code>).</li>
         </ul>
     </section>
     <section id="workflow">
         <h2>🔄 Принцип работы</h2>
+        <p>Один и тот же обмен producer/consumer работает по любому транспорту. Пример через MQTT:</p>
         <ol>
             <li>Продюсер отправляет JSON <code>ProducerMessageInDto</code> в топик <code>producer/request/{deviceId}</code>.</li>
             <li>Создаётся <code>ConsumerMessageOutDto</code> с уникальным ID.</li>
@@ -62,7 +63,7 @@ cd duster_broker
 # WEBSOCKET_PORT=9443
 # MQTT_PORT=8883
 docker compose up -d</pre>
-        <p>Сервисы: MQTT-брокер, PostgreSQL, сам Duster.</p>
+        <p>Сервисы: Duster Broker, PostgreSQL, MQTT (как один из транспортов).</p>
         <h3>JAR-файл</h3>
         <pre>
 gradle build
