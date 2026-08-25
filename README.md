@@ -1,4 +1,4 @@
-# IoT message broker with delivery guarantees, status tracking, and rate limiting (includes connection examples for ESP32).
+# Reliable IoT Message Broker (MQTT + REST) with Guaranteed Delivery, Status Tracking and Rate Limiting | ESP32 Examples
 
 Duster Protocol: [instructions/duster_protocol/DUSTER_PROTOCOL.md](instructions/duster_protocol/DUSTER_PROTOCOL.md)
 
