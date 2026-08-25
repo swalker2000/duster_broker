@@ -2,6 +2,7 @@ package com.duster.database.data.message
 
 /**
  * Статус доставки сообщения.
+ *  - ВНИМАНИЕ: Используется вызов ordinal порядок следования элементов важен!!!
  * @param canReceiveFromConsumer данный статус может быть получен от consumer.
  */
 enum class DeliveryStatus(val canReceiveFromConsumer: Boolean) {

@@ -15,7 +15,7 @@ import com.duster.transport.data.dto.InDto
  * @param id сообщения Message на которое мы отвечаем
  */
 class ConsumerMessageInDto (
-    var id: Int = 0,
+    var id: Long = 0,
     ) : InDto
 {
     /**

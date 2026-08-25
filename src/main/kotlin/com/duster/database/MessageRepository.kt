@@ -12,7 +12,7 @@ import org.springframework.transaction.annotation.Transactional
 import java.util.Date
 import java.util.Optional
 
-interface MessageRepository: JpaRepository<Message, Int> {
+interface MessageRepository: JpaRepository<Message, Long> {
 
     fun findAllByOrderByCreatedDateDesc(pageable: Pageable): Page<Message>
 
@@ -33,7 +33,7 @@ interface MessageRepository: JpaRepository<Message, Int> {
      * @return true если сообщение доставлено, false если нет, или null если сообщение с таким id не найдено
      */
     @Query("SELECT m.deliveryStatus FROM Message m WHERE m.id = :id")
-    fun findDeliveredById(@Param("id") id: Int): Optional<DeliveryStatus>
+    fun findDeliveredById(@Param("id") id: Long): Optional<DeliveryStatus>
 
     /**
      * Найти все сообщения по значению флага delivered, и созданные раньше createDate.
@@ -58,7 +58,7 @@ interface MessageRepository: JpaRepository<Message, Int> {
         "UPDATE Message m SET m.deliveryStatus = :deliveryStatus, " +
                 "m.deliveredDate = :deliveredDate WHERE m.id = :id")
     fun updateDeliveryStatus(
-        @Param("id") id: Int,
+        @Param("id") id: Long,
         @Param("deliveryStatus") deliveryStatus: DeliveryStatus,
         @Param("deliveredDate") deliveredDate: Date
     ): Int
@@ -93,7 +93,7 @@ interface MessageRepository: JpaRepository<Message, Int> {
     @Query(
         "UPDATE Message m SET  m.deliveredError = :deliveredError WHERE m.id = :id")
     fun updateDeliveryError(
-        @Param("id") id: Int,
+        @Param("id") id: Long,
         @Param("deliveredError") deliveredError: Boolean
     ): Int
 

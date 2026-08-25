@@ -31,8 +31,8 @@ class ProducerMqtt(
                 val payload = message.payload.toString(StandardCharsets.UTF_8)
                 runCatching {
                     val json = om.readTree(payload)
-                    val id = json.get("id")?.asInt() ?: return@runCatching
-                    val tmpId = json.get("tmpId")?.asInt()
+                    val id = json.get("id")?.asLong() ?: return@runCatching
+                    val tmpId = json.get("tmpId")?.asLong()
                     val statusStr = json.get("deliveryStatus")?.asText() ?: return@runCatching
                     val status = DeliveryStatus.valueOf(statusStr)
                     statusChangeHandler?.newStatusEvent(ProducerMessageOutDto(id, tmpId, status))

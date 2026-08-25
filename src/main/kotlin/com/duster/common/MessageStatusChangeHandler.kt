@@ -47,7 +47,7 @@ class MessageStatusChangeHandler {
      *  - сообщает producer о смене статуса
      */
     fun updateDeliveryStatus(
-        id: Int,
+        id: Long,
         deliveryStatus: DeliveryStatus,
         deliveredDate: Date
     )

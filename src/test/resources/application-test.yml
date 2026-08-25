@@ -20,6 +20,15 @@ spring:
     hibernate:
       ddl-auto: create-drop
 
+duster:
+  protocol:
+    tcp:
+      enabled: true
+      port: 0
+    tls:
+      enabled: true
+      port: 0
+
 app:
   jwt:
     secret: test-jwt-secret-must-be-at-least-32-bytes-long!!

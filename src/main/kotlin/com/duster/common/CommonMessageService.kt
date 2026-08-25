@@ -116,7 +116,7 @@ val publisher = CommonPublisher
     }
 
 
-    fun getDeliveryStatusStatus(messageId: Int) : Optional<ProducerDeliveryStatusOutDto>
+    fun getDeliveryStatusStatus(messageId: Long) : Optional<ProducerDeliveryStatusOutDto>
     {
         return mainRepository.findDeliveredById(messageId)
             .map { ProducerDeliveryStatusOutDto(it) }

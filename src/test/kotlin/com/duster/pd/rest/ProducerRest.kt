@@ -77,7 +77,7 @@ class ProducerRest(
         }
     }
 
-    private fun pollMessageStatus(messageId: Int, tmpId: Int?, initialStatus: DeliveryStatus) {
+    private fun pollMessageStatus(messageId: Long, tmpId: Long?, initialStatus: DeliveryStatus) {
         var last = initialStatus
         try {
             while (!Thread.currentThread().isInterrupted()) {
@@ -97,7 +97,7 @@ class ProducerRest(
         }
     }
 
-    private fun fetchDeliveryStatus(messageId: Int): ProducerDeliveryStatusOutDto? {
+    private fun fetchDeliveryStatus(messageId: Long): ProducerDeliveryStatusOutDto? {
         val uri = URI.create("$root/producer/getMessageStatus/$messageId")
         val request = requestBuilder(uri).GET().build()
         val response = runCatching {

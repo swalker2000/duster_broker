@@ -30,7 +30,7 @@ class RestServiceMessageHandler {
 
     @Operation(summary = "Get delivery status of message (from producer).")
     @GetMapping("/producer/getMessageStatus/{messageId}")
-    fun getDeliveryStatusStatus(@PathVariable messageId: Int): ProducerDeliveryStatusOutDto {
+    fun getDeliveryStatusStatus(@PathVariable messageId: Long): ProducerDeliveryStatusOutDto {
         return commonMessageService.getDeliveryStatusStatus(messageId).orElseThrow {
             ResponseStatusException(HttpStatus.NOT_FOUND, "Message not found for id: $messageId")
         }
